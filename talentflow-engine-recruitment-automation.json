@@ -1,0 +1,889 @@
+{
+  "name": "TalentFlow Engine - Recruitment Automation Demo (v1.0.0)",
+  "nodes": [
+    {
+      "id": "n01",
+      "name": "1. Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "n02",
+      "name": "1b. Dashboard Webhook (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        480
+      ],
+      "webhookId": "7f3c2a10-5b1e-4c7a-9d21-3e8f6a1b2c40",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "talentflow-demo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "notes": "Open the Test URL in a browser after clicking 'Listen for test event' to see the rendered HTML dashboard."
+    },
+    {
+      "id": "n03",
+      "name": "2. Load CONFIG",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// TalentFlow Engine - single source of truth. Change this object, not the pipeline.\nconst CONFIG = {\n  \"workflow_version\": \"1.0.0\",\n  \"agency\": \"Northbridge Talent Partners (fictional demo agency)\",\n  \"mode\": \"DEMO\",\n  \"ai_enabled\": false,\n  \"crm_push_enabled\": false,\n  \"timezone\": \"Europe/London\",\n  \"business_hours\": \"09:00-17:30\",\n  \"data_use_policy\": {\n    \"principles\": [\n      \"Scoring uses skills, experience, seniority, location, salary and availability only.\",\n      \"Protected characteristics are redacted before scoring and before any LLM call.\",\n      \"The workflow recommends; recruiters decide. No automatic rejections. No message is sent automatically.\",\n      \"Do-not-contact and recently-contacted candidates have all outreach suppressed.\",\n      \"Demo candidates are synthetic and are not real people.\"\n    ],\n    \"labels\": [\n      \"SYNTHETIC DATA\",\n      \"SIMULATED CRM RECORD\",\n      \"AI HYPOTHESIS\",\n      \"FACT\"\n    ]\n  },\n  \"scoring_weights\": {\n    \"must_have_skills\": 40,\n    \"nice_to_have_skills\": 10,\n    \"seniority_fit\": 15,\n    \"function_fit\": 10,\n    \"location_workmode\": 10,\n    \"salary_alignment\": 10,\n    \"availability\": 5\n  },\n  \"must_have_gate\": {\n    \"min_coverage\": 0.5,\n    \"score_cap\": 49\n  },\n  \"alternate_min_score\": 60,\n  \"tiers\": [\n    {\n      \"tier\": \"A\",\n      \"label\": \"FAST-TRACK\",\n      \"min\": 90,\n      \"recommendation\": \"SHORTLIST\",\n      \"sla_text\": \"within 4 business hours\",\n      \"sla_risk_hours\": 8\n    },\n    {\n      \"tier\": \"B\",\n      \"label\": \"RECRUITER REVIEW\",\n      \"min\": 75,\n      \"recommendation\": \"RECRUITER_REVIEW\",\n      \"sla_text\": \"within 1 business day\",\n      \"sla_risk_hours\": 24\n    },\n    {\n      \"tier\": \"C\",\n      \"label\": \"TALENT POOL\",\n      \"min\": 55,\n      \"recommendation\": \"TALENT_POOL\",\n      \"sla_text\": \"within 3 business days\",\n      \"sla_risk_hours\": 72\n    },\n    {\n      \"tier\": \"D\",\n      \"label\": \"NO CURRENT MATCH\",\n      \"min\": 0,\n      \"recommendation\": \"NO_CURRENT_MATCH\",\n      \"sla_text\": \"none\",\n      \"sla_risk_hours\": null\n    }\n  ],\n  \"recommendation_rank\": {\n    \"NO_CURRENT_MATCH\": 0,\n    \"TALENT_POOL\": 1,\n    \"RECRUITER_REVIEW\": 2,\n    \"SHORTLIST\": 3\n  },\n  \"skill_display\": {\n    \"aws\": \"AWS\",\n    \"sql\": \"SQL\",\n    \"soql\": \"SOQL\",\n    \"dbt\": \"dbt\",\n    \"ci/cd\": \"CI/CD\",\n    \"fp&a\": \"FP&A\",\n    \"saas\": \"SaaS\",\n    \"typescript\": \"TypeScript\",\n    \"javascript\": \"JavaScript\",\n    \"power bi\": \"Power BI\",\n    \"netsuite\": \"NetSuite\",\n    \"postgresql\": \"PostgreSQL\",\n    \"hubspot\": \"HubSpot\",\n    \"graphql\": \"GraphQL\",\n    \"node.js\": \"Node.js\",\n    \"salesforce\": \"Salesforce\",\n    \"salesforce flows\": \"Salesforce Flows\",\n    \"kubernetes\": \"Kubernetes\"\n  },\n  \"skills_taxonomy\": {\n    \"node.js\": [\n      \"node\",\n      \"nodejs\",\n      \"node js\"\n    ],\n    \"javascript\": [\n      \"js\",\n      \"java script\",\n      \"ecmascript\",\n      \"es6\"\n    ],\n    \"typescript\": [\n      \"ts\"\n    ],\n    \"react\": [\n      \"reactjs\",\n      \"react.js\"\n    ],\n    \"graphql\": [\n      \"graph ql\"\n    ],\n    \"aws\": [\n      \"amazon web services\",\n      \"amazon aws\"\n    ],\n    \"postgresql\": [\n      \"postgres\",\n      \"psql\"\n    ],\n    \"docker\": [],\n    \"kubernetes\": [\n      \"k8s\"\n    ],\n    \"terraform\": [],\n    \"ci/cd\": [\n      \"cicd\",\n      \"ci cd\",\n      \"continuous integration\"\n    ],\n    \"python\": [],\n    \"sql\": [],\n    \"dbt\": [],\n    \"airflow\": [\n      \"apache airflow\"\n    ],\n    \"tableau\": [],\n    \"power bi\": [\n      \"powerbi\"\n    ],\n    \"excel\": [\n      \"ms excel\",\n      \"microsoft excel\"\n    ],\n    \"salesforce\": [\n      \"sfdc\",\n      \"salesforce.com\"\n    ],\n    \"salesforce flows\": [\n      \"flow builder\",\n      \"sfdc flows\",\n      \"sf flows\",\n      \"salesforce flow\"\n    ],\n    \"apex\": [],\n    \"soql\": [],\n    \"data loader\": [\n      \"dataloader\"\n    ],\n    \"hubspot\": [],\n    \"customer success\": [\n      \"client success\"\n    ],\n    \"saas\": [\n      \"software as a service\"\n    ],\n    \"renewals\": [\n      \"renewal management\"\n    ],\n    \"fp&a\": [\n      \"fpa\",\n      \"fp and a\"\n    ],\n    \"financial modelling\": [\n      \"financial modeling\"\n    ],\n    \"forecasting\": [],\n    \"netsuite\": [],\n    \"java\": [],\n    \"spring boot\": []\n  },\n  \"functions\": {\n    \"Software Engineering\": {\n      \"title\": [\n        \"software engineer\",\n        \"developer\",\n        \"backend\",\n        \"back-end\",\n        \"full stack\",\n        \"frontend\",\n        \"programmer\"\n      ],\n      \"skills\": [\n        \"node.js\",\n        \"typescript\",\n        \"javascript\",\n        \"react\",\n        \"graphql\",\n        \"postgresql\",\n        \"java\",\n        \"spring boot\"\n      ]\n    },\n    \"DevOps / Cloud\": {\n      \"title\": [\n        \"devops\",\n        \"sre\",\n        \"site reliability\",\n        \"platform engineer\",\n        \"cloud engineer\",\n        \"infrastructure\"\n      ],\n      \"skills\": [\n        \"terraform\",\n        \"kubernetes\",\n        \"docker\",\n        \"ci/cd\",\n        \"aws\"\n      ]\n    },\n    \"CRM / Salesforce\": {\n      \"title\": [\n        \"salesforce\",\n        \"crm\",\n        \"sfdc\"\n      ],\n      \"skills\": [\n        \"salesforce\",\n        \"salesforce flows\",\n        \"apex\",\n        \"soql\",\n        \"data loader\"\n      ]\n    },\n    \"Data & Analytics\": {\n      \"title\": [\n        \"data analyst\",\n        \"analytics\",\n        \"business intelligence\",\n        \"bi analyst\",\n        \"data engineer\",\n        \"data scientist\"\n      ],\n      \"skills\": [\n        \"sql\",\n        \"tableau\",\n        \"power bi\",\n        \"dbt\",\n        \"airflow\",\n        \"python\"\n      ]\n    },\n    \"Customer Success\": {\n      \"title\": [\n        \"customer success\",\n        \"account manager\",\n        \"csm\",\n        \"client success\"\n      ],\n      \"skills\": [\n        \"customer success\",\n        \"renewals\",\n        \"saas\",\n        \"hubspot\"\n      ]\n    },\n    \"Finance\": {\n      \"title\": [\n        \"finance\",\n        \"fp&a\",\n        \"financial\",\n        \"accountant\",\n        \"controller\"\n      ],\n      \"skills\": [\n        \"fp&a\",\n        \"financial modelling\",\n        \"forecasting\",\n        \"netsuite\"\n      ]\n    }\n  },\n  \"related_functions\": [\n    [\n      \"Software Engineering\",\n      \"DevOps / Cloud\"\n    ],\n    [\n      \"CRM / Salesforce\",\n      \"Customer Success\"\n    ],\n    [\n      \"Data & Analytics\",\n      \"Finance\"\n    ]\n  ],\n  \"regions\": {\n    \"london\": \"London & South East\",\n    \"reading\": \"London & South East\",\n    \"brighton\": \"London & South East\",\n    \"manchester\": \"North West\",\n    \"liverpool\": \"North West\",\n    \"leeds\": \"Yorkshire\",\n    \"sheffield\": \"Yorkshire\",\n    \"bristol\": \"South West\",\n    \"glasgow\": \"Scotland\",\n    \"edinburgh\": \"Scotland\",\n    \"birmingham\": \"West Midlands\"\n  },\n  \"protected_patterns\": [\n    {\n      \"label\": \"age\",\n      \"pattern\": \"\\\\b\\\\d{1,2}[- ]?(?:years?[- ]?old|yo)\\\\b|\\\\bage[d]?\\\\s*:?\\\\s*\\\\d{2}\\\\b|\\\\b(?:dob|date of birth)\\\\b\"\n    },\n    {\n      \"label\": \"gender\",\n      \"pattern\": \"\\\\b(?:he|she|him|her|hers|his|himself|herself|mr|mrs|ms|miss)\\\\b\"\n    },\n    {\n      \"label\": \"family_status\",\n      \"pattern\": \"\\\\b(?:mother|father|mum|mom|dad|parent|married|single|divorced|widowed|maternity|paternity|children|kids|son|daughter|wife|husband)\\\\b\"\n    },\n    {\n      \"label\": \"nationality_religion\",\n      \"pattern\": \"\\\\b(?:british|scottish|welsh|irish|indian|polish|nigerian|pakistani|muslim|christian|hindu|jewish|sikh|catholic|atheist)\\\\b\"\n    },\n    {\n      \"label\": \"health_disability\",\n      \"pattern\": \"\\\\b(?:disabled|disability|wheelchair|cancer|depress\\\\w*|anxiety|adhd|autis\\\\w*|dyslex\\\\w*|pregnan\\\\w*)\\\\b\"\n    },\n    {\n      \"label\": \"contact_details\",\n      \"pattern\": \"[a-z0-9._%+\\\\-]+@[a-z0-9.\\\\-]+\\\\.[a-z]{2,}|\\\\+?\\\\d[\\\\d\\\\s\\\\-()]{8,}\\\\d\"\n    }\n  ],\n  \"title_abbreviations\": {\n    \"sr\": \"Senior\",\n    \"jr\": \"Junior\",\n    \"sfdc\": \"Salesforce\",\n    \"mgr\": \"Manager\",\n    \"eng\": \"Engineer\",\n    \"dev\": \"Developer\"\n  },\n  \"recruiters\": [\n    {\n      \"name\": \"Alex Morgan (demo)\",\n      \"functions\": [\n        \"Software Engineering\",\n        \"DevOps / Cloud\"\n      ],\n      \"generalist\": false,\n      \"capacity\": 3\n    },\n    {\n      \"name\": \"Jordan Ellis (demo)\",\n      \"functions\": [\n        \"CRM / Salesforce\",\n        \"Customer Success\"\n      ],\n      \"generalist\": false,\n      \"capacity\": 3\n    },\n    {\n      \"name\": \"Sam Rahman (demo)\",\n      \"functions\": [\n        \"Data & Analytics\",\n        \"Finance\"\n      ],\n      \"generalist\": false,\n      \"capacity\": 3\n    },\n    {\n      \"name\": \"Casey Doyle (demo, generalist overflow)\",\n      \"functions\": [],\n      \"generalist\": true,\n      \"capacity\": 6\n    }\n  ],\n  \"simulated_existing_records\": [\n    {\n      \"email\": \"hannah.cole@example.com\",\n      \"record_id\": \"SIM-SF-0042\",\n      \"status\": \"Active candidate (SIMULATED)\",\n      \"last_contacted_days_ago\": 3,\n      \"do_not_contact\": false\n    },\n    {\n      \"email\": \"marcus.bell@example.com\",\n      \"record_id\": \"SIM-SF-0107\",\n      \"status\": \"Opted out of marketing (SIMULATED)\",\n      \"last_contacted_days_ago\": 90,\n      \"do_not_contact\": true\n    },\n    {\n      \"email\": \"amelia.hartwell@example.com\",\n      \"record_id\": \"SIM-SF-0011\",\n      \"status\": \"Previous applicant (SIMULATED)\",\n      \"last_contacted_days_ago\": 41,\n      \"do_not_contact\": false\n    }\n  ],\n  \"demo_jobs\": [\n    {\n      \"job_id\": \"J-1001\",\n      \"title\": \"Senior Backend Engineer\",\n      \"function\": \"Software Engineering\",\n      \"client_label\": \"DEMO CLIENT A (fictional)\",\n      \"region\": \"London & South East\",\n      \"work_mode\": \"hybrid\",\n      \"target_seniority\": 3,\n      \"salary_min\": 65000,\n      \"salary_max\": 85000,\n      \"target_shortlist\": 3,\n      \"must_have\": [\n        \"node.js\",\n        \"typescript\",\n        \"aws\",\n        \"postgresql\"\n      ],\n      \"nice_to_have\": [\n        \"docker\",\n        \"graphql\",\n        \"ci/cd\",\n        \"react\"\n      ]\n    },\n    {\n      \"job_id\": \"J-1002\",\n      \"title\": \"Salesforce Administrator\",\n      \"function\": \"CRM / Salesforce\",\n      \"client_label\": \"DEMO CLIENT B (fictional)\",\n      \"region\": \"North West\",\n      \"work_mode\": \"hybrid\",\n      \"target_seniority\": 2,\n      \"salary_min\": 45000,\n      \"salary_max\": 58000,\n      \"target_shortlist\": 3,\n      \"must_have\": [\n        \"salesforce\",\n        \"salesforce flows\",\n        \"soql\"\n      ],\n      \"nice_to_have\": [\n        \"apex\",\n        \"data loader\",\n        \"hubspot\"\n      ]\n    },\n    {\n      \"job_id\": \"J-1003\",\n      \"title\": \"Data Analyst\",\n      \"function\": \"Data & Analytics\",\n      \"client_label\": \"DEMO CLIENT C (fictional)\",\n      \"region\": \"London & South East\",\n      \"work_mode\": \"hybrid\",\n      \"target_seniority\": 2,\n      \"salary_min\": 48000,\n      \"salary_max\": 60000,\n      \"target_shortlist\": 3,\n      \"must_have\": [\n        \"sql\",\n        \"python\",\n        [\n          \"tableau\",\n          \"power bi\"\n        ]\n      ],\n      \"nice_to_have\": [\n        \"dbt\",\n        \"airflow\",\n        \"excel\"\n      ]\n    },\n    {\n      \"job_id\": \"J-1004\",\n      \"title\": \"Customer Success Manager (SaaS)\",\n      \"function\": \"Customer Success\",\n      \"client_label\": \"DEMO CLIENT D (fictional)\",\n      \"region\": \"UK Remote\",\n      \"work_mode\": \"remote\",\n      \"target_seniority\": 2,\n      \"salary_min\": 50000,\n      \"salary_max\": 62000,\n      \"target_shortlist\": 3,\n      \"must_have\": [\n        \"customer success\",\n        \"saas\",\n        \"renewals\"\n      ],\n      \"nice_to_have\": [\n        \"hubspot\",\n        \"salesforce\"\n      ]\n    },\n    {\n      \"job_id\": \"J-1005\",\n      \"title\": \"Senior Finance Business Partner\",\n      \"function\": \"Finance\",\n      \"client_label\": \"DEMO CLIENT E (fictional)\",\n      \"region\": \"Yorkshire\",\n      \"work_mode\": \"hybrid\",\n      \"target_seniority\": 3,\n      \"salary_min\": 70000,\n      \"salary_max\": 85000,\n      \"target_shortlist\": 3,\n      \"must_have\": [\n        \"fp&a\",\n        \"financial modelling\",\n        \"forecasting\"\n      ],\n      \"nice_to_have\": [\n        \"power bi\",\n        \"excel\",\n        \"netsuite\"\n      ]\n    },\n    {\n      \"job_id\": \"J-1006\",\n      \"title\": \"DevOps Engineer\",\n      \"function\": \"DevOps / Cloud\",\n      \"client_label\": \"DEMO CLIENT F (fictional)\",\n      \"region\": \"UK Remote\",\n      \"work_mode\": \"remote\",\n      \"target_seniority\": 2,\n      \"salary_min\": 60000,\n      \"salary_max\": 78000,\n      \"target_shortlist\": 3,\n      \"must_have\": [\n        \"aws\",\n        \"terraform\",\n        [\n          \"kubernetes\",\n          \"docker\"\n        ]\n      ],\n      \"nice_to_have\": [\n        \"ci/cd\",\n        \"python\"\n      ]\n    }\n  ],\n  \"live_jobs\": [],\n  \"live_candidates\": [],\n  \"comms\": {\n    \"max_words\": 90,\n    \"min_days_between_touches\": 7,\n    \"banned_phrases\": [\n      \"amazing work\",\n      \"big fan\",\n      \"hope this finds you well\",\n      \"rockstar\",\n      \"ninja\",\n      \"perfect fit\",\n      \"guaranteed\"\n    ]\n  },\n  \"assumptions\": {\n    \"manual_screen_minutes_per_candidate\": 6,\n    \"label\": \"ASSUMPTION - replace with your agency's measured figure. Not a claim of actual time saved.\"\n  },\n  \"salesforce_flow_blueprints\": [\n    {\n      \"flow_name\": \"Candidate Match - Fast-Track Task\",\n      \"type\": \"Record-Triggered Flow (after save)\",\n      \"object\": \"Candidate_Match__c\",\n      \"entry_criteria\": \"Tier__c = 'A' AND Comms_Suppressed__c = false AND (Created OR Tier__c changed)\",\n      \"actions\": [\n        \"Create Task: Subject 'Call {Candidate} re {Job}', ActivityDate = TODAY, OwnerId = Recruiter__c\",\n        \"Send custom notification to Recruiter__c\",\n        \"Set SLA_Due__c using Business Hours 09:00-17:30 Europe/London + 4h\"\n      ],\n      \"fault_path\": \"Create Error_Log__c record and notify Recruiting Ops\"\n    },\n    {\n      \"flow_name\": \"SLA Watchdog\",\n      \"type\": \"Scheduled Flow (hourly)\",\n      \"object\": \"Candidate_Match__c\",\n      \"entry_criteria\": \"Tier__c IN ('A','B') AND First_Contact_Date__c = null AND SLA_Due__c < NOW()\",\n      \"actions\": [\n        \"Set SLA_Breached__c = true\",\n        \"Email Recruiting Manager digest\",\n        \"Post to recruiter queue\"\n      ],\n      \"fault_path\": \"Email Salesforce admin with the failed interview record Id\"\n    },\n    {\n      \"flow_name\": \"Duplicate Guard\",\n      \"type\": \"Record-Triggered Flow (before save) + Matching Rule\",\n      \"object\": \"Contact\",\n      \"entry_criteria\": \"Candidate_External_Id__c or Email matches an existing Contact\",\n      \"actions\": [\n        \"Block create and route to update path\",\n        \"Log duplicate_attempt count on the surviving Contact\"\n      ],\n      \"fault_path\": \"Route to Data Quality queue\"\n    },\n    {\n      \"flow_name\": \"Placement Stage Sync\",\n      \"type\": \"Record-Triggered Flow (after save)\",\n      \"object\": \"Candidate_Match__c\",\n      \"entry_criteria\": \"Stage__c changed to 'Placed'\",\n      \"actions\": [\n        \"Close other open Candidate_Match__c rows for the same Contact\",\n        \"Create follow-up Task for client-feedback call\"\n      ],\n      \"fault_path\": \"Error_Log__c + Slack alert\"\n    }\n  ],\n  \"ai\": {\n    \"endpoint\": \"https://api.openai.com/v1/chat/completions\",\n    \"model\": \"gpt-4o-mini\",\n    \"temperature\": 0.1,\n    \"system_prompt\": \"You are a screening assistant for a UK recruitment agency. You receive an ANONYMISED candidate profile, a job specification and a deterministic match analysis. Use ONLY the supplied fields. Never infer, mention or ask about age, gender, ethnicity, nationality, religion, health, disability, pregnancy, family or marital status, or any other protected characteristic under the UK Equality Act 2010. You never reject anyone: a human recruiter makes every decision. Choose recommendation from exactly: SHORTLIST, RECRUITER_REVIEW, TALENT_POOL, NO_CURRENT_MATCH. A skill missing from a profile is NOT evidence the candidate lacks it: phrase gaps as 'not evidenced in profile - verify on call'. In fit_summary separate statements with the prefixes 'FACT:' (restating supplied data) and 'HYPOTHESIS:' (hedged inference using may/could). Never invent skills, employers, dates, qualifications or metrics. matched_skills must be a subset of the supplied candidate skills. screening_questions must be open-ended, job-related and lawful, maximum 5. fit_summary maximum 90 words. Return ONLY one JSON object with exactly these keys: candidate_ref, recommended_job_id, recommendation, fit_summary, strengths, gaps, screening_questions, matched_skills, confidence. confidence is a number from 0 to 1. No markdown, no commentary.\"\n  },\n  \"endpoints\": {\n    \"salesforce_instance_url\": \"SALESFORCE_INSTANCE_URL_REQUIRED\",\n    \"salesforce_api_version\": \"v60.0\",\n    \"airtable_base_id\": \"AIRTABLE_BASE_ID_REQUIRED\",\n    \"airtable_table\": \"AIRTABLE_TABLE_NAME_REQUIRED\",\n    \"clay_webhook\": \"CLAY_WEBHOOK_URL_REQUIRED\",\n    \"mcp_integration_points\": [\n      \"CRM lookup: MCP_CRM_TOOL_REQUIRED\",\n      \"Candidate enrichment: MCP_ENRICHMENT_TOOL_REQUIRED\",\n      \"Calendar booking: MCP_CALENDAR_TOOL_REQUIRED\",\n      \"Opportunity creation: MCP_OPPORTUNITY_TOOL_REQUIRED\"\n    ]\n  }\n};\nreturn [{ json: { config: CONFIG } }];\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n04",
+      "name": "3. Load Candidates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst DEMO = [\n  {\n    \"candidate_ref\": \"CAND-1001\",\n    \"full_name\": \"Amelia Hartwell\",\n    \"email\": \"amelia.hartwell@example.com\",\n    \"phone\": \"+44 7700 900101\",\n    \"location\": \"London\",\n    \"current_title\": \"Senior Backend Developer\",\n    \"years_experience\": 8,\n    \"skills_raw\": \"JS, TypeScript, Node, Amazon Web Services, Postgres, Docker, GraphQL, CI/CD\",\n    \"summary_text\": \"Led a payments API migration to AWS and mentors two junior engineers.\",\n    \"desired_salary\": 78000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 3,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1002\",\n    \"full_name\": \"Rohan Deshmukh\",\n    \"email\": \"rohan.deshmukh@example.com\",\n    \"phone\": \"+44 7700 900102\",\n    \"location\": \"Manchester\",\n    \"current_title\": \"Salesforce Administrator\",\n    \"years_experience\": 5,\n    \"skills_raw\": \"Salesforce, SFDC Flows, Flow Builder, Apex, Data Loader\",\n    \"summary_text\": \"Built and maintained record-triggered Flows and validation rules across Sales and Service Cloud.\",\n    \"desired_salary\": 52000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 5,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1003\",\n    \"full_name\": \"Grace Oyelaran\",\n    \"email\": \"grace.oyelaran@example.com\",\n    \"phone\": \"+44 7700 900103\",\n    \"location\": \"Leeds\",\n    \"current_title\": \"Senior FP&A Manager\",\n    \"years_experience\": 9,\n    \"skills_raw\": \"FP&A, Financial Modelling, Forecasting, Excel, Power BI, NetSuite\",\n    \"summary_text\": \"Owns the monthly forecasting cycle and board reporting for a 300-person SaaS company.\",\n    \"desired_salary\": 82000,\n    \"notice_period_weeks\": 12,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 30,\n    \"source\": \"Referral\",\n    \"processing_basis\": \"legitimate_interest\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1004\",\n    \"full_name\": \"Tomasz Kowalczyk\",\n    \"email\": \"tomasz.kowalczyk@example.com\",\n    \"phone\": \"+44 7700 900104\",\n    \"location\": \"Bristol\",\n    \"current_title\": \"DevOps Engineer\",\n    \"years_experience\": 6,\n    \"skills_raw\": \"AWS, Terraform, k8s, Docker, CI CD, Python\",\n    \"summary_text\": \"Runs Kubernetes clusters and Terraform pipelines and automated the release process.\",\n    \"desired_salary\": 72000,\n    \"notice_period_weeks\": 8,\n    \"work_mode_pref\": \"remote\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 20,\n    \"source\": \"LinkedIn\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1005\",\n    \"full_name\": \"Sofia Marchetti\",\n    \"email\": \"sofia.marchetti@example.com\",\n    \"phone\": \"+44 7700 900105\",\n    \"location\": \"London\",\n    \"current_title\": \"Data Analyst\",\n    \"years_experience\": 4,\n    \"skills_raw\": \"SQL, Python, Tableau, Excel, dbt\",\n    \"summary_text\": \"34-year-old mother of two, British national. She has 4 years of analytics experience and is returning after maternity leave. Sofia built self-serve dashboards for a retail client.\",\n    \"desired_salary\": 48000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 7,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1006\",\n    \"full_name\": \"Callum Reid\",\n    \"email\": \"callum.reid@example.com\",\n    \"phone\": \"+44 7700 900106\",\n    \"location\": \"Glasgow\",\n    \"current_title\": \"Customer Success Manager\",\n    \"years_experience\": 6,\n    \"skills_raw\": \"customer success, SaaS, HubSpot, Salesforce\",\n    \"summary_text\": \"Manages a book of 45 mid-market accounts.\",\n    \"desired_salary\": 60000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"remote\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 11,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1007\",\n    \"full_name\": \"AMELIA HARTWELL\",\n    \"email\": \" Amelia.Hartwell@Example.com \",\n    \"phone\": \"07700 900101\",\n    \"location\": \"london\",\n    \"current_title\": \"Sr. Backend Dev\",\n    \"years_experience\": 8,\n    \"skills_raw\": \"JS, Node, AWS\",\n    \"summary_text\": \"\",\n    \"desired_salary\": 78000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 26,\n    \"source\": \"Agency website\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1008\",\n    \"full_name\": \"James Whitfield\",\n    \"email\": \"\",\n    \"phone\": \"+44 7700 900107\",\n    \"location\": \"London\",\n    \"current_title\": \"Salesforce Admin\",\n    \"years_experience\": 3,\n    \"skills_raw\": \"Salesforce, Flow Builder, SOQL, Reports\",\n    \"summary_text\": \"Admin in a professional-services firm supporting 120 users.\",\n    \"desired_salary\": 46000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": true,\n    \"applied_hours_ago\": 9,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1009\",\n    \"full_name\": \"Nadia Bakr\",\n    \"email\": \"nadia.bakr@example\",\n    \"phone\": \"+44 7700 900108\",\n    \"location\": \"London\",\n    \"current_title\": \"Junior Data Analyst\",\n    \"years_experience\": 1,\n    \"skills_raw\": \"SQL, Power BI, Excel\",\n    \"summary_text\": \"Reporting analyst moving toward analytics engineering.\",\n    \"desired_salary\": 45000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 14,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1010\",\n    \"full_name\": \"Hannah Cole\",\n    \"email\": \"hannah.cole@example.com\",\n    \"phone\": \"+44 7700 900109\",\n    \"location\": \"Manchester\",\n    \"current_title\": \"Customer Success Manager\",\n    \"years_experience\": 4,\n    \"skills_raw\": \"customer success, SaaS, renewals, HubSpot\",\n    \"summary_text\": \"Supports enterprise onboarding and renewals.\",\n    \"desired_salary\": 55000,\n    \"notice_period_weeks\": 6,\n    \"work_mode_pref\": \"remote\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 6,\n    \"source\": \"Referral\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1011\",\n    \"full_name\": \"Marcus Bell\",\n    \"email\": \"marcus.bell@example.com\",\n    \"phone\": \"+44 7700 900110\",\n    \"location\": \"London\",\n    \"current_title\": \"Backend Engineer\",\n    \"years_experience\": 5,\n    \"skills_raw\": \"Java, Spring Boot, SQL, Docker\",\n    \"summary_text\": \"JVM backend developer exploring Node roles.\",\n    \"desired_salary\": 70000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 18,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1012\",\n    \"full_name\": \"Elena Voss\",\n    \"email\": \"elena.voss@example.com\",\n    \"phone\": \"+44 7700 900111\",\n    \"location\": \"Leeds\",\n    \"current_title\": \"Senior Finance Business Partner\",\n    \"years_experience\": 11,\n    \"skills_raw\": \"FP&A, Financial Modelling, Forecasting, Power BI, Excel\",\n    \"summary_text\": \"Partners with commercial leadership on budgeting and margin analysis.\",\n    \"desired_salary\": 105000,\n    \"notice_period_weeks\": 8,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 8,\n    \"source\": \"Referral\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1013\",\n    \"full_name\": \"Oliver Grant\",\n    \"email\": \"oliver.grant@example.com\",\n    \"phone\": \"+44 7700 900112\",\n    \"location\": \"Birmingham\",\n    \"current_title\": \"Salesforce Developer\",\n    \"years_experience\": 6,\n    \"skills_raw\": \"Salesforce, Apex, SOQL, Salesforce Flow, Data Loader\",\n    \"summary_text\": \"Builds Apex triggers and Flows for a manufacturing client.\",\n    \"desired_salary\": 62000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": true,\n    \"applied_hours_ago\": 4,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"unknown\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1014\",\n    \"full_name\": \"Isabelle Ferran\",\n    \"email\": \"isabelle.ferran@example.com\",\n    \"phone\": \"+44 7700 900113\",\n    \"location\": \"London\",\n    \"current_title\": \"Marketing Executive\",\n    \"years_experience\": 3,\n    \"skills_raw\": \"SEO, Content Marketing, Google Analytics, Canva\",\n    \"summary_text\": \"Runs paid and organic campaigns for a consumer brand.\",\n    \"desired_salary\": 38000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 16,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1015\",\n    \"full_name\": \"Kwame Asante\",\n    \"email\": \"kwame.asante@example.com\",\n    \"phone\": \"+44 7700 900114\",\n    \"location\": \"London\",\n    \"current_title\": \"Junior Software Developer\",\n    \"years_experience\": 1,\n    \"skills_raw\": \"JavaScript, React, Node\",\n    \"summary_text\": \"Graduate developer with two internships.\",\n    \"desired_salary\": 34000,\n    \"notice_period_weeks\": 2,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 2,\n    \"source\": \"Job board\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1016\",\n    \"full_name\": \"Zoe Lindqvist\",\n    \"email\": \"zoe.lindqvist@example.com\",\n    \"phone\": \"+44 7700 900115\",\n    \"location\": \"London\",\n    \"current_title\": \"Analytics Engineer\",\n    \"years_experience\": 6,\n    \"skills_raw\": \"SQL, Python, dbt, Airflow, AWS, Terraform\",\n    \"summary_text\": \"Builds ELT pipelines and semantic models on a cloud warehouse.\",\n    \"desired_salary\": 68000,\n    \"notice_period_weeks\": 8,\n    \"work_mode_pref\": \"hybrid\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 10,\n    \"source\": \"LinkedIn\",\n    \"processing_basis\": \"consent\"\n  },\n  {\n    \"candidate_ref\": \"CAND-1017\",\n    \"full_name\": \"Callum Reid\",\n    \"email\": \"callum.reid.work@example.com\",\n    \"phone\": \"+44 7700 900106\",\n    \"location\": \"Glasgow\",\n    \"current_title\": \"Customer Success Manager\",\n    \"years_experience\": 6,\n    \"skills_raw\": \"customer success, SaaS\",\n    \"summary_text\": \"\",\n    \"desired_salary\": 60000,\n    \"notice_period_weeks\": 4,\n    \"work_mode_pref\": \"remote\",\n    \"relocate\": false,\n    \"applied_hours_ago\": 5,\n    \"source\": \"Agency website\",\n    \"processing_basis\": \"consent\"\n  }\n];\nconst now = new Date();\nfunction hoursAgoISO(h){ return new Date(now.getTime() - Number(h) * 3600000).toISOString(); }\n\nlet rows = [];\nif (CONFIG.mode === \"LIVE\") {\n  rows = (CONFIG.live_candidates || []).map(function(c){ return Object.assign({}, c, { data_label: \"LIVE INPUT\" }); });\n} else {\n  rows = DEMO.map(function(c){\n    const o = Object.assign({}, c, { data_label: \"DEMO DATA - SYNTHETIC CANDIDATES - NOT REAL PEOPLE\" });\n    o.applied_at = hoursAgoISO(c.applied_hours_ago);\n    delete o.applied_hours_ago;\n    return o;\n  });\n}\n\nif (!rows.length) {\n  return [{ json: { halt: true, status: \"REQUIRES_REVIEW\", review_reasons: [\"NO_INPUT_CANDIDATES\"],\n    note: \"No candidates supplied. In LIVE mode add records to CONFIG.live_candidates (node 2).\",\n    run_mode: CONFIG.mode, workflow_version: CONFIG.workflow_version } }];\n}\n\nreturn rows.map(function(r){\n  return { json: Object.assign({ run_mode: CONFIG.mode, workflow_version: CONFIG.workflow_version,\n    received_at: now.toISOString(), status: \"OK\", review_reasons: [] }, r) };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n05",
+      "name": "4. Normalize + Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst ABBR = CONFIG.title_abbreviations;\nconst EMAIL_RE = /^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}$/;\n\nfunction clean(s){ return String(s == null ? \"\" : s).replace(/\\s+/g, \" \").trim(); }\nfunction titleCase(s){ return clean(s).toLowerCase().replace(/(^|[\\s\\-'])([a-z])/g, function(m, a, b){ return a + b.toUpperCase(); }); }\nfunction normPhone(p){\n  let d = String(p || \"\").replace(/[^\\d+]/g, \"\");\n  if (!d) return \"\";\n  if (d.indexOf(\"00\") === 0) d = \"+\" + d.slice(2);\n  if (d.charAt(0) === \"0\") d = \"+44\" + d.slice(1);\n  if (d.charAt(0) !== \"+\") d = \"+\" + d;\n  return d;\n}\nfunction normTitle(t){\n  return clean(t).split(\" \").map(function(w){\n    const k = w.toLowerCase().replace(/[.,]/g, \"\");\n    return ABBR[k] ? ABBR[k] : w;\n  }).join(\" \");\n}\nfunction normDate(d){ const t = new Date(d); return isNaN(t.getTime()) ? \"\" : t.toISOString(); }\nfunction numOrNull(v){ if (v === \"\" || v === null || v === undefined) return null; const n = Number(v); return isNaN(n) ? null : n; }\n\nreturn $input.all().map(function(item){\n  const j = item.json;\n  if (j.halt) return item;\n  const reasons = Array.isArray(j.review_reasons) ? j.review_reasons.slice() : [];\n\n  const full_name = titleCase(j.full_name);\n  const parts = full_name.split(\" \");\n  const email = clean(j.email).toLowerCase();\n  const email_valid = EMAIL_RE.test(email);\n  const phone = normPhone(j.phone);\n  const digits = phone.replace(/\\D/g, \"\");\n\n  if (!full_name) reasons.push(\"MISSING_NAME\");\n  if (!email) reasons.push(\"MISSING_EMAIL\"); else if (!email_valid) reasons.push(\"INVALID_EMAIL\");\n  if (phone && (digits.length < 10 || digits.length > 15)) reasons.push(\"INVALID_PHONE\");\n\n  const basis = clean(j.processing_basis || \"unknown\").toLowerCase();\n  if ([\"consent\", \"legitimate_interest\", \"contract\"].indexOf(basis) === -1) reasons.push(\"PROCESSING_BASIS_UNCONFIRMED\");\n\n  const years = numOrNull(j.years_experience);\n  if (years === null) reasons.push(\"MISSING_EXPERIENCE\");\n  if (!clean(j.skills_raw) && !clean(j.summary_text)) reasons.push(\"NO_SKILLS_OR_SUMMARY\");\n\n  const rec = {\n    candidate_ref: clean(j.candidate_ref) || \"UNKNOWN\",\n    full_name: full_name || \"UNKNOWN\",\n    first_name: parts[0] || \"\",\n    last_name: parts.slice(1).join(\" \"),\n    email: email,\n    email_valid: email_valid,\n    phone: phone,\n    location: titleCase(j.location) || \"UNKNOWN\",\n    current_title: normTitle(j.current_title),\n    years_experience: years === null ? null : Math.max(0, Math.min(50, years)),\n    skills_raw: clean(j.skills_raw),\n    summary_text: clean(j.summary_text),\n    desired_salary: numOrNull(j.desired_salary),\n    notice_period_weeks: numOrNull(j.notice_period_weeks),\n    work_mode_pref: clean(j.work_mode_pref).toLowerCase() || \"unknown\",\n    relocate: Boolean(j.relocate),\n    applied_at: normDate(j.applied_at),\n    source: clean(j.source) || \"UNKNOWN\",\n    processing_basis: basis,\n    data_label: j.data_label,\n    run_mode: j.run_mode,\n    workflow_version: j.workflow_version,\n    received_at: j.received_at,\n    status: reasons.length ? \"REQUIRES_REVIEW\" : \"OK\",\n    review_reasons: reasons\n  };\n  return { json: rec };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n06",
+      "name": "5. Deduplicate + CRM Match",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst items = $input.all();\nconst halted = items.filter(function(i){ return i.json.halt; });\nif (halted.length && halted.length === items.length) return items;\n\nfunction richness(j){\n  return (j.skills_raw || \"\").length + (j.summary_text || \"\").length + (j.email_valid ? 50 : 0) + (j.phone ? 20 : 0) + (j.years_experience !== null ? 10 : 0);\n}\nfunction keysOf(j){\n  const k = [];\n  if (j.email_valid) k.push(\"e:\" + j.email);\n  if (j.phone) k.push(\"p:\" + j.phone);\n  if (j.full_name !== \"UNKNOWN\" && j.location !== \"UNKNOWN\") k.push(\"n:\" + j.full_name.toLowerCase() + \"|\" + j.location.toLowerCase());\n  return k;\n}\n\nconst groups = [];\nconst keyToGroup = {};\nlet rawCount = 0;\n\nitems.filter(function(i){ return !i.json.halt; }).forEach(function(i){\n  rawCount++;\n  const rec = JSON.parse(JSON.stringify(i.json));\n  const ks = keysOf(rec);\n  let gi = -1;\n  for (const k of ks) { if (keyToGroup[k] !== undefined) { gi = keyToGroup[k]; break; } }\n  if (gi === -1) {\n    gi = groups.length;\n    rec.merged_refs = [rec.candidate_ref];\n    rec.application_count = 1;\n    rec.alt_emails = [];\n    rec.duplicates_merged = 0;\n    groups.push(rec);\n  } else {\n    let base = groups[gi];\n    let other = rec;\n    if (richness(other) > richness(base)) {\n      const carry = { merged_refs: base.merged_refs, application_count: base.application_count, alt_emails: base.alt_emails, duplicates_merged: base.duplicates_merged };\n      const swapped = Object.assign({}, other, carry);\n      swapped.alt_emails = swapped.alt_emails.slice();\n      if (base.email && base.email !== swapped.email && swapped.alt_emails.indexOf(base.email) === -1) swapped.alt_emails.push(base.email);\n      const oldBase = base;\n      base = swapped; other = oldBase;\n      groups[gi] = base;\n    } else if (other.email && other.email !== base.email && base.alt_emails.indexOf(other.email) === -1) {\n      base.alt_emails.push(other.email);\n    }\n    [\"email\",\"phone\",\"current_title\",\"skills_raw\",\"summary_text\",\"location\"].forEach(function(f){\n      if ((!base[f] || base[f] === \"UNKNOWN\") && other[f]) base[f] = other[f];\n    });\n    [\"years_experience\",\"desired_salary\",\"notice_period_weeks\"].forEach(function(f){\n      if (base[f] === null && other[f] !== null) base[f] = other[f];\n    });\n    base.email_valid = /^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}$/.test(base.email || \"\");\n    if (other.applied_at && (!base.applied_at || other.applied_at < base.applied_at)) base.applied_at = other.applied_at;\n    base.merged_refs = base.merged_refs.concat(other.merged_refs || [other.candidate_ref]).filter(function(v, idx, a){ return a.indexOf(v) === idx; });\n    base.application_count += 1;\n    base.duplicates_merged += 1;\n    const kept = (base.review_reasons || []).filter(function(r){ return [\"MISSING_EMAIL\",\"INVALID_EMAIL\"].indexOf(r) === -1; });\n    const others = (other.review_reasons || []).filter(function(r){ return [\"MISSING_EMAIL\",\"INVALID_EMAIL\",\"MISSING_NAME\"].indexOf(r) === -1 && kept.indexOf(r) === -1; });\n    base.review_reasons = kept.concat(others);\n    if (!base.email) base.review_reasons.push(\"MISSING_EMAIL\"); else if (!base.email_valid) base.review_reasons.push(\"INVALID_EMAIL\");\n    base.status = base.review_reasons.length ? \"REQUIRES_REVIEW\" : \"OK\";\n  }\n  keysOf(groups[gi]).concat(ks).forEach(function(k){ keyToGroup[k] = gi; });\n});\n\nconst existing = CONFIG.simulated_existing_records || [];\nconst minDays = CONFIG.comms.min_days_between_touches;\n\nreturn groups.map(function(g){\n  const emails = [g.email].concat(g.alt_emails).filter(Boolean);\n  const hit = existing.filter(function(e){ return emails.indexOf(String(e.email).toLowerCase()) !== -1; })[0];\n  g.crm_match = hit\n    ? { found: true, record_id: hit.record_id, status: hit.status, last_contacted_days_ago: hit.last_contacted_days_ago, do_not_contact: hit.do_not_contact,\n        label: \"SIMULATED CRM RECORD\" }\n    : { found: false, label: \"SIMULATED CRM LOOKUP - no match. INTEGRATION POINT: replace with Salesforce SOQL lookup or MCP_CRM_TOOL_REQUIRED\" };\n  g.crm_action = hit ? \"UPDATE_EXISTING\" : \"CREATE_NEW\";\n  g.comms_suppression_reasons = [];\n  if (hit && hit.do_not_contact) g.comms_suppression_reasons.push(\"DO_NOT_CONTACT\");\n  if (hit && !hit.do_not_contact && hit.last_contacted_days_ago < minDays) g.comms_suppression_reasons.push(\"RECENTLY_CONTACTED\");\n  g.raw_applications_in_run = rawCount;\n  return { json: g };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n07",
+      "name": "6. Anonymise Protected Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst PATTERNS = CONFIG.protected_patterns.map(function(p){ return { label: p.label, source: p.pattern }; });\n\nfunction esc(s){ return s.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\"); }\n\nreturn $input.all().map(function(item){\n  const j = JSON.parse(JSON.stringify(item.json));\n  if (j.halt) return { json: j };\n  let text = String(j.summary_text || \"\");\n  const counts = {};\n  let total = 0;\n\n  const names = [j.first_name, j.last_name].join(\" \").split(\" \").filter(function(t){ return t && t.length >= 3; });\n  names.forEach(function(n){\n    text = text.replace(new RegExp(\"\\\\b\" + esc(n) + \"\\\\b\", \"gi\"), function(){ total++; counts.name = (counts.name || 0) + 1; return \"[CANDIDATE]\"; });\n  });\n  PATTERNS.forEach(function(p){\n    text = text.replace(new RegExp(p.source, \"gi\"), function(){ total++; counts[p.label] = (counts[p.label] || 0) + 1; return \"[REDACTED]\"; });\n  });\n  text = text.replace(/(\\[REDACTED\\]\\s*){2,}/g, \"[REDACTED] \").replace(/\\s+/g, \" \").trim();\n\n  j.anonymised_summary = text;\n  j.redaction_count = total;\n  j.redaction_categories = counts;\n  j.pii_policy_note = \"Name, email, phone and protected-characteristic terms are removed from anything used for scoring or sent to an LLM.\";\n  return { json: j };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n08",
+      "name": "7. Classify Skills + Seniority",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst TAX = CONFIG.skills_taxonomy;\nconst termToCanon = {};\nObject.keys(TAX).forEach(function(c){ termToCanon[c.toLowerCase()] = c; TAX[c].forEach(function(s){ termToCanon[s.toLowerCase()] = c; }); });\nfunction esc(s){ return s.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\"); }\nconst scanners = Object.keys(termToCanon).filter(function(t){ return t.length >= 2; }).map(function(t){\n  return { canon: termToCanon[t], re: new RegExp(\"(^|[^a-z0-9])\" + esc(t) + \"($|[^a-z0-9])\", \"i\") };\n});\n\nfunction seniorityFrom(title, years){\n  const t = String(title || \"\").toLowerCase();\n  if (/\\b(lead|principal|head|director|staff|architect)\\b/.test(t)) return { level: 4, source: \"title\" };\n  if (/\\b(senior|sr)\\b/.test(t)) return { level: 3, source: \"title\" };\n  if (/\\b(junior|jr|graduate|trainee|entry|intern)\\b/.test(t)) return { level: 1, source: \"title\" };\n  if (years === null) return { level: 2, source: \"default (experience missing)\" };\n  if (years >= 12) return { level: 4, source: \"years\" };\n  if (years >= 6) return { level: 3, source: \"years\" };\n  if (years >= 2) return { level: 2, source: \"years\" };\n  return { level: 1, source: \"years\" };\n}\nconst LABELS = { 1: \"Junior\", 2: \"Mid-level\", 3: \"Senior\", 4: \"Lead / Principal\" };\n\nreturn $input.all().map(function(item){\n  const j = JSON.parse(JSON.stringify(item.json));\n  if (j.halt) return { json: j };\n\n  const found = {};\n  const unrec = [];\n  String(j.skills_raw || \"\").split(/[,;|\\n]+/).forEach(function(tok){\n    const k = tok.trim().toLowerCase();\n    if (!k) return;\n    if (termToCanon[k]) found[termToCanon[k]] = true; else unrec.push(tok.trim());\n  });\n  const hay = \" \" + String(j.anonymised_summary || \"\") + \" \" + String(j.current_title || \"\") + \" \";\n  scanners.forEach(function(s){ if (s.re.test(hay)) found[s.canon] = true; });\n  const skills = Object.keys(found).sort();\n\n  const titleL = String(j.current_title || \"\").toLowerCase();\n  let best = \"Unclassified\", bestScore = 0;\n  const scores = {};\n  Object.keys(CONFIG.functions).forEach(function(fn){\n    const f = CONFIG.functions[fn];\n    let s = 0;\n    f.title.forEach(function(k){ if (titleL.indexOf(k) !== -1) s += 3; });\n    f.skills.forEach(function(k){ if (found[k]) s += 1; });\n    scores[fn] = s;\n    if (s > bestScore) { bestScore = s; best = fn; }\n  });\n  if (bestScore < 2) best = \"Unclassified\";\n\n  const sen = seniorityFrom(j.current_title, j.years_experience);\n  const region = CONFIG.regions[String(j.location || \"\").toLowerCase()] || \"Unmapped region\";\n\n  j.skills = skills;\n  j.skills_unrecognised = unrec;\n  j.function = best;\n  j.function_scores = scores;\n  j.seniority_level = sen.level;\n  j.seniority_label = LABELS[sen.level];\n  j.seniority_source = sen.source;\n  j.region = region;\n  if (best === \"Unclassified\") j.review_reasons = (j.review_reasons || []).concat([\"FUNCTION_UNCLASSIFIED\"]);\n  if (!skills.length) j.review_reasons = (j.review_reasons || []).concat([\"NO_RECOGNISED_SKILLS\"]);\n  if (j.review_reasons.length) j.status = \"REQUIRES_REVIEW\";\n  return { json: j };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n09",
+      "name": "8. Match Scoring vs Open Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst W = CONFIG.scoring_weights;\nconst JOBS = CONFIG.mode === \"LIVE\" ? CONFIG.live_jobs : CONFIG.demo_jobs;\n\nfunction r1(n){ return Math.round(n * 10) / 10; }\nfunction arr(g){ return Array.isArray(g) ? g : [g]; }\nfunction label(g){ return arr(g).join(\" OR \"); }\nfunction related(a, b){\n  return (CONFIG.related_functions || []).some(function(p){ return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a); });\n}\nfunction tierFor(score){\n  for (const t of CONFIG.tiers) { if (score >= t.min) return t; }\n  return CONFIG.tiers[CONFIG.tiers.length - 1];\n}\n\nfunction scoreJob(j, job){\n  const have = {};\n  (j.skills || []).forEach(function(s){ have[s] = true; });\n  const flags = [];\n\n  const mustMet = [], mustUnmet = [];\n  (job.must_have || []).forEach(function(g){\n    const hit = arr(g).filter(function(x){ return have[x]; });\n    if (hit.length) mustMet.push(hit[0]); else mustUnmet.push(label(g));\n  });\n  const mustTotal = (job.must_have || []).length;\n  const coverage = mustTotal ? mustMet.length / mustTotal : 1;\n  const niceMet = (job.nice_to_have || []).filter(function(s){ return have[s]; });\n  const niceCov = (job.nice_to_have || []).length ? niceMet.length / job.nice_to_have.length : 0;\n\n  const diff = j.seniority_level - job.target_seniority;\n  let sen = 0;\n  if (diff === 0) sen = W.seniority_fit;\n  else if (diff === 1) sen = W.seniority_fit * 0.8;\n  else if (diff >= 2) { sen = W.seniority_fit * 0.4; flags.push(\"OVERQUALIFIED_FOR_LEVEL\"); }\n  else if (diff === -1) { sen = W.seniority_fit * 0.45; flags.push(\"BELOW_TARGET_SENIORITY\"); }\n  else { sen = 0; flags.push(\"BELOW_TARGET_SENIORITY\"); }\n\n  let fn = 0;\n  if (j.function === job.function) fn = W.function_fit;\n  else if (related(j.function, job.function)) fn = W.function_fit * 0.4;\n\n  let loc = 0, locNote = \"\";\n  if (job.work_mode === \"remote\") { loc = W.location_workmode; locNote = \"remote role\"; }\n  else if (j.region === job.region) { loc = W.location_workmode; locNote = \"same region\"; }\n  else if (j.relocate) { loc = W.location_workmode * 0.5; locNote = \"open to relocate\"; }\n  else { loc = 0; locNote = \"different region, not open to relocate\"; flags.push(\"LOCATION_MISMATCH\"); }\n\n  let sal = 0;\n  if (j.desired_salary === null) { sal = W.salary_alignment * 0.5; flags.push(\"SALARY_EXPECTATION_MISSING\"); }\n  else if (j.desired_salary <= job.salary_max) sal = W.salary_alignment;\n  else if (j.desired_salary <= job.salary_max * 1.10) { sal = W.salary_alignment * 0.5; flags.push(\"SALARY_SLIGHTLY_ABOVE_BAND\"); }\n  else { sal = 0; flags.push(\"SALARY_ABOVE_BAND\"); }\n\n  let av = 0;\n  if (j.notice_period_weeks === null) av = W.availability * 0.4;\n  else if (j.notice_period_weeks <= 4) av = W.availability;\n  else if (j.notice_period_weeks <= 8) av = W.availability * 0.6;\n  else { av = W.availability * 0.2; flags.push(\"LONG_NOTICE_PERIOD\"); }\n\n  const b = {\n    must_have_skills: r1(W.must_have_skills * coverage),\n    nice_to_have_skills: r1(W.nice_to_have_skills * niceCov),\n    seniority_fit: r1(sen), function_fit: r1(fn), location_workmode: r1(loc), salary_alignment: r1(sal), availability: r1(av)\n  };\n  let total = Object.keys(b).reduce(function(a, k){ return a + b[k]; }, 0);\n  if (coverage < CONFIG.must_have_gate.min_coverage) {\n    total = Math.min(total, CONFIG.must_have_gate.score_cap);\n    flags.push(\"MUST_HAVE_GATE_APPLIED\");\n  }\n  const score = Math.round(Math.max(0, Math.min(100, total)));\n  return { job_id: job.job_id, job_title: job.title, function: job.function, score: score, breakdown: b, must_met: mustMet, must_unmet: mustUnmet,\n    must_total: mustTotal, nice_met: niceMet, location_note: locNote, flags: flags, salary_band: [job.salary_min, job.salary_max], job_region: job.region, work_mode: job.work_mode };\n}\n\nreturn $input.all().map(function(item){\n  const j = JSON.parse(JSON.stringify(item.json));\n  if (j.halt) return { json: j };\n  const all = JOBS.map(function(job){ return scoreJob(j, job); }).sort(function(a, b){ return b.score - a.score; });\n  const best = all[0];\n  j.job_scores = all;\n  j.best_match = best;\n  j.best_job_id = best ? best.job_id : \"\";\n  j.match_score = best ? best.score : 0;\n  j.score_tier = tierFor(j.match_score).tier;\n  j.alternates = all.slice(1, 3).filter(function(a){ return a.score >= CONFIG.alternate_min_score; }).map(function(a){ return { job_id: a.job_id, job_title: a.job_title, score: a.score }; });\n  j.score_formula = \"must_have(40) + nice_to_have(10) + seniority(15) + function(10) + location/work-mode(10) + salary(10) + availability(5); must-have gate caps score at \" + CONFIG.must_have_gate.score_cap + \" when coverage < \" + CONFIG.must_have_gate.min_coverage;\n  return { json: j };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n10",
+      "name": "9. Deterministic Screening",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst DISP = CONFIG.skill_display || {};\nfunction disp(s){\n  if (DISP[s]) return DISP[s];\n  return String(s).split(\" \").map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(\" \");\n}\nfunction gbp(n){ return \"GBP \" + Number(n).toLocaleString(\"en-GB\"); }\n\nreturn $input.all().map(function(item){\n  const j = JSON.parse(JSON.stringify(item.json));\n  if (j.halt) return { json: j };\n  const b = j.best_match;\n  const tier = CONFIG.tiers.filter(function(t){ return t.tier === j.score_tier; })[0];\n\n  const strengths = [];\n  if (b.must_met.length) strengths.push(\"FACT: Profile evidences \" + b.must_met.map(disp).join(\", \") + \" (\" + b.must_met.length + \" of \" + b.must_total + \" must-have skills for \" + b.job_title + \").\");\n  if (b.nice_met.length) strengths.push(\"FACT: Also lists nice-to-have skills: \" + b.nice_met.map(disp).join(\", \") + \".\");\n  if (j.years_experience !== null) strengths.push(\"FACT: \" + j.years_experience + \" years of experience stated; current title as entered: \" + (j.current_title || \"not stated\") + \".\");\n  strengths.push(\"FACT: Profile classified as \" + j.function + \", \" + j.seniority_label + \" level (source: \" + j.seniority_source + \").\");\n\n  const gaps = b.must_unmet.map(function(g){ return \"Not evidenced in profile: \" + g + \" (must-have) - verify on call. Absence from a CV is not proof of absence.\"; });\n\n  const flags = b.flags.slice();\n  const q = [];\n  b.must_unmet.slice(0, 2).forEach(function(g){ q.push(\"Can you describe your hands-on experience with \" + g + \" in a production setting?\"); });\n  if (flags.indexOf(\"SALARY_ABOVE_BAND\") !== -1 || flags.indexOf(\"SALARY_SLIGHTLY_ABOVE_BAND\") !== -1) q.push(\"The band for this role is \" + gbp(b.salary_band[0]) + \" to \" + gbp(b.salary_band[1]) + \". How flexible are your expectations?\");\n  if (flags.indexOf(\"LONG_NOTICE_PERIOD\") !== -1) q.push(\"Is there any flexibility on your notice period?\");\n  if (flags.indexOf(\"LOCATION_MISMATCH\") !== -1) q.push(\"This role is based in \" + b.job_region + \" (\" + b.work_mode + \"). Would that arrangement work for you?\");\n  if (flags.indexOf(\"OVERQUALIFIED_FOR_LEVEL\") !== -1) q.push(\"This role is pitched at a slightly lower level than your background. What would make it attractive to you?\");\n  if (!q.length) q.push(\"What is prompting your interest in a move at this point?\");\n\n  const hyp = tier.tier === \"A\" ? \"HYPOTHESIS: The profile may align closely with the brief; a short recruiter call is the quickest way to confirm depth.\"\n    : tier.tier === \"B\" ? \"HYPOTHESIS: The profile may align in part; the gaps listed could reflect CV wording rather than real gaps.\"\n    : tier.tier === \"C\" ? \"HYPOTHESIS: Not a close match for open roles today, but the background could suit future briefs in this function.\"\n    : \"HYPOTHESIS: No open role appears to be a close match on the evidence supplied.\";\n\n  let conf = 0.3;\n  if ((j.skills || []).length >= 4) conf += 0.15;\n  if (j.years_experience !== null) conf += 0.15;\n  if ((j.anonymised_summary || \"\").length >= 40) conf += 0.15;\n  if (j.current_title) conf += 0.1;\n  if (j.email_valid) conf += 0.05;\n  conf = Math.round(Math.min(0.9, conf) * 100) / 100;\n\n  const analysis = {\n    candidate_ref: j.candidate_ref, recommended_job_id: b.job_id, recommendation: tier.recommendation,\n    fit_summary: \"FACT: Deterministic match score \" + j.match_score + \"/100 for \" + b.job_title + \". \" + hyp,\n    strengths: strengths, gaps: gaps, screening_questions: q.slice(0, 5), matched_skills: b.must_met.concat(b.nice_met), confidence: conf\n  };\n  j.analysis = analysis;\n  j.analysis_source = \"RULE_BASED_BASELINE\";\n  j.unmet_must = b.must_unmet;\n  j.ai_payload = {\n    candidate_ref: j.candidate_ref,\n    anonymised_profile: { current_title: j.current_title, years_experience: j.years_experience, seniority: j.seniority_label, function: j.function,\n      skills: j.skills, anonymised_summary: j.anonymised_summary, region: j.region, work_mode_pref: j.work_mode_pref,\n      desired_salary_gbp: j.desired_salary, notice_period_weeks: j.notice_period_weeks },\n    job: { job_id: b.job_id, title: b.job_title, function: b.function, region: b.job_region, work_mode: b.work_mode, salary_band_gbp: b.salary_band,\n      must_have: b.must_met.concat(b.must_unmet), nice_to_have: b.nice_met },\n    deterministic_match: { match_score: j.match_score, breakdown: b.breakdown, must_met: b.must_met, must_unmet: b.must_unmet, flags: b.flags },\n    allowed_recommendations: Object.keys(CONFIG.recommendation_rank),\n    baseline_analysis: analysis\n  };\n  return { json: j };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n11",
+      "name": "10. LLM Enabled?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "n11-c1",
+              "leftValue": "={{ String($('2. Load CONFIG').first().json.config.ai_enabled) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "n12",
+      "name": "11a. LLM Screening (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1740,
+        180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('2. Load CONFIG').first().json.config.ai.endpoint }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $('2. Load CONFIG').first().json.config.ai.model, temperature: $('2. Load CONFIG').first().json.config.ai.temperature, response_format: { type: 'json_object' }, messages: [ { role: 'system', content: $('2. Load CONFIG').first().json.config.ai.system_prompt }, { role: 'user', content: JSON.stringify($json.ai_payload) } ] }) }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "notes": "OPENAI_CREDENTIAL_REQUIRED: create an n8n Header Auth credential (Name=Authorization, Value=Bearer <your key>) and select it here. Only the ANONYMISED ai_payload is sent - never name, email or phone. Swap endpoint/model in node 2 to use any OpenAI-compatible LLM.",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n13",
+      "name": "11b. Skip LLM (baseline only)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        420
+      ],
+      "parameters": {},
+      "notes": "LLM disabled: deterministic screening is used."
+    },
+    {
+      "id": "n14",
+      "name": "12. Merge Analysis",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1960,
+        300
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 2,
+        "options": {}
+      }
+    },
+    {
+      "id": "n15",
+      "name": "13. Parse + Guardrail AI Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst base = $('9. Deterministic Screening').all();\nconst incoming = $input.all();\nconst RANK = CONFIG.recommendation_rank;\nconst PATS = CONFIG.protected_patterns.filter(function(p){ return p.label !== \"contact_details\"; })\n  .map(function(p){ return new RegExp(p.pattern, \"i\"); });\n\nfunction hasProtected(t){ return PATS.some(function(re){ return re.test(String(t || \"\")); }); }\nfunction scrub(t){\n  let s = String(t || \"\");\n  CONFIG.comms.banned_phrases.forEach(function(p){ s = s.replace(new RegExp(p, \"gi\"), \"\"); });\n  return s.replace(/\\s{2,}/g, \" \").trim();\n}\nfunction limitWords(t, n){ const w = String(t || \"\").trim().split(/\\s+/).filter(Boolean); return w.length <= n ? w.join(\" \") : w.slice(0, n).join(\" \"); }\n\nconst out = [];\nfor (let i = 0; i < base.length; i++) {\n  const j = JSON.parse(JSON.stringify(base[i].json));\n  if (j.halt) { out.push({ json: j }); continue; }\n  const reasons = Array.isArray(j.review_reasons) ? j.review_reasons.slice() : [];\n  const advisory = [];\n  const resp = incoming[i] ? incoming[i].json : {};\n  const a = Object.assign({}, j.analysis);\n  let source = \"RULE_BASED_BASELINE\";\n\n  if (resp && resp.error) {\n    reasons.push(\"AI_REQUEST_FAILED\");\n  } else if (resp && resp.choices && resp.choices[0] && resp.choices[0].message) {\n    try {\n      let raw = String(resp.choices[0].message.content || \"\").trim();\n      raw = raw.replace(/^```json/i, \"\").replace(/^```/, \"\").replace(/```$/, \"\").trim();\n      const p = JSON.parse(raw);\n      const required = [\"candidate_ref\",\"recommended_job_id\",\"recommendation\",\"fit_summary\",\"strengths\",\"gaps\",\"screening_questions\",\"matched_skills\",\"confidence\"];\n      const missing = required.filter(function(k){ return p[k] === undefined; });\n      if (missing.length) {\n        reasons.push(\"AI_RESPONSE_MISSING_KEYS:\" + missing.join(\",\"));\n      } else {\n        if (RANK[p.recommendation] === undefined) reasons.push(\"AI_RECOMMENDATION_INVALID\");\n        else if (RANK[p.recommendation] > RANK[a.recommendation]) advisory.push(\"AI_RECOMMENDATION_CAPPED_TO_BASELINE\");\n        else a.recommendation = p.recommendation;\n\n        if (typeof p.fit_summary === \"string\" && p.fit_summary.length > 20) {\n          if (hasProtected(p.fit_summary)) advisory.push(\"AI_SUMMARY_REJECTED_PROTECTED_TERMS\");\n          else a.fit_summary = limitWords(scrub(p.fit_summary), 90);\n        }\n        if (Array.isArray(p.strengths)) {\n          const ok = p.strengths.filter(function(s){ return typeof s === \"string\" && !hasProtected(s); }).slice(0, 5).map(scrub);\n          if (ok.length) a.strengths = ok;\n          if (ok.length !== p.strengths.length) advisory.push(\"AI_STRENGTHS_FILTERED\");\n        }\n        if (Array.isArray(p.screening_questions)) {\n          const ok = p.screening_questions.filter(function(s){ return typeof s === \"string\" && s.indexOf(\"?\") !== -1 && !hasProtected(s); }).slice(0, 5).map(scrub);\n          if (ok.length) a.screening_questions = ok;\n          if (ok.length !== p.screening_questions.length) advisory.push(\"AI_QUESTIONS_FILTERED\");\n        }\n        if (Array.isArray(p.matched_skills)) {\n          const okS = p.matched_skills.filter(function(s){ return j.skills.indexOf(String(s).toLowerCase()) !== -1; });\n          if (okS.length !== p.matched_skills.length) advisory.push(\"AI_UNSUPPORTED_SKILL_CLAIM_REMOVED\");\n        }\n        if (typeof p.confidence === \"number\" && p.confidence >= 0 && p.confidence <= 1) a.confidence = Math.min(p.confidence, a.confidence);\n        source = \"LLM_VALIDATED\";\n      }\n    } catch (e) {\n      reasons.push(\"AI_RESPONSE_MALFORMED\");\n    }\n  }\n\n  if (source === \"LLM_VALIDATED\" && advisory.length) source = \"LLM_FILTERED\";\n  a.candidate_ref = j.candidate_ref;\n  a.recommended_job_id = j.best_job_id;\n  j.analysis = a;\n  j.analysis_source = source;\n  j.review_reasons = reasons;\n  j.advisory_flags = advisory;\n  if (reasons.length) j.status = \"REQUIRES_REVIEW\";\n  delete j.ai_payload;\n  out.push({ json: j });\n}\nreturn out;\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n16",
+      "name": "14. Triage + Recruiter Routing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst JOBS = CONFIG.mode === \"LIVE\" ? CONFIG.live_jobs : CONFIG.demo_jobs;\nconst items = $input.all();\nconst halted = items.filter(function(i){ return i.json.halt; });\nconst work = items.filter(function(i){ return !i.json.halt; }).map(function(i){ return JSON.parse(JSON.stringify(i.json)); });\nwork.sort(function(a, b){ return b.match_score - a.match_score; });\n\nconst load = {};\nCONFIG.recruiters.forEach(function(r){ load[r.name] = 0; });\nconst nowMs = Date.now();\n\nwork.forEach(function(j){\n  const tier = CONFIG.tiers.filter(function(t){ return t.tier === j.score_tier; })[0];\n  j.tier = tier.tier; j.tier_label = tier.label; j.sla_text = tier.sla_text;\n  j.recommendation = j.analysis.recommendation;\n  j.advisory_flags = j.advisory_flags || [];\n  if (j.recommendation !== tier.recommendation) j.advisory_flags.push(\"AI_ADVISES_CAUTION_VS_SCORE\");\n\n  const suppressed = j.comms_suppression_reasons || [];\n  const job = JOBS.filter(function(x){ return x.job_id === j.best_job_id; })[0] || {};\n  const fn = job.function || j.function;\n\n  if (suppressed.indexOf(\"DO_NOT_CONTACT\") !== -1) {\n    j.recruiter = \"Unassigned (do-not-contact)\";\n  } else if (tier.tier === \"D\") {\n    j.recruiter = \"Unassigned (no current match)\";\n  } else {\n    const elig = CONFIG.recruiters.filter(function(r){ return r.generalist || r.functions.indexOf(fn) !== -1; });\n    elig.sort(function(a, b){\n      const ao = load[a.name] >= a.capacity ? 1 : 0, bo = load[b.name] >= b.capacity ? 1 : 0;\n      if (ao !== bo) return ao - bo;\n      if (a.generalist !== b.generalist) return a.generalist ? 1 : -1;\n      return load[a.name] - load[b.name];\n    });\n    const pick = elig[0];\n    j.recruiter = pick ? pick.name : \"Unassigned\";\n    if (pick) {\n      load[pick.name]++;\n      j.routing_note = pick.generalist ? \"Overflow to generalist: specialist capacity reached\" : \"Routed to \" + fn + \" specialist\";\n    }\n  }\n\n  const hrs = j.applied_at ? (nowMs - new Date(j.applied_at).getTime()) / 3600000 : null;\n  j.hours_since_application = hrs === null ? null : Math.round(hrs * 10) / 10;\n  j.sla_at_risk = Boolean(hrs !== null && tier.sla_risk_hours !== null && hrs > tier.sla_risk_hours\n    && suppressed.indexOf(\"DO_NOT_CONTACT\") === -1 && suppressed.indexOf(\"RECENTLY_CONTACTED\") === -1);\n  j.sla_assumption = \"Assumes no first contact yet. In production read First_Contact_Date__c from Salesforce.\";\n});\nreturn halted.concat(work).map(function(j){ return { json: j.json ? j.json : j }; });\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n17",
+      "name": "15. Draft Comms (approval required)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst MAX = CONFIG.comms.max_words;\nconst DISP = CONFIG.skill_display || {};\nfunction disp(s){\n  if (DISP[s]) return DISP[s];\n  return String(s).split(\" \").map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(\" \");\n}\nfunction words(t){ return String(t || \"\").trim().split(/\\s+/).filter(Boolean); }\nfunction limitWords(t, n){ const w = words(t); return w.length <= n ? w.join(\" \") : w.slice(0, n).join(\" \"); }\nfunction scrub(t){\n  let s = String(t || \"\");\n  CONFIG.comms.banned_phrases.forEach(function(p){ s = s.replace(new RegExp(p, \"gi\"), \"\"); });\n  return s.replace(/\\s{2,}/g, \" \").trim();\n}\nfunction joinNatural(a){ return a.length <= 1 ? a.join(\"\") : a.slice(0, -1).join(\", \") + \" and \" + a[a.length - 1]; }\n\nreturn $input.all().map(function(item){\n  const j = JSON.parse(JSON.stringify(item.json));\n  if (j.halt) return { json: j };\n  const reasons = (j.comms_suppression_reasons || []).slice();\n  if (!j.email_valid) reasons.push(\"NO_VALID_EMAIL\");\n  if (j.processing_basis !== \"consent\" && j.processing_basis !== \"legitimate_interest\" && j.processing_basis !== \"contract\") reasons.push(\"PROCESSING_BASIS_UNCONFIRMED\");\n  if (j.tier === \"D\" || j.recommendation === \"NO_CURRENT_MATCH\") reasons.push(\"NO_AUTOMATED_DRAFT_FOR_TIER_D\");\n\n  const first = j.first_name || \"there\";\n  const skills = (j.analysis.matched_skills || []).slice(0, 3).map(disp);\n  const skillPhrase = skills.length ? joinNatural(skills) : \"your background\";\n  const job = j.best_match.job_title;\n  let draft = \"\";\n  const TEMPLATE = { SHORTLIST: \"A\", RECRUITER_REVIEW: \"B\", TALENT_POOL: \"C\", NO_CURRENT_MATCH: \"D\" };\n  const tpl = TEMPLATE[j.recommendation] || j.tier;\n  if (tpl === \"A\") {\n    draft = \"Hi \" + first + \", thanks for applying for the \" + job + \" role. Your experience with \" + skillPhrase + \" looks closely aligned to the brief and I would like to talk it through. Are you free for a quick 15-minute call today or tomorrow? Best, [Recruiter name]\";\n  } else if (tpl === \"B\") {\n    draft = \"Hi \" + first + \", thanks for applying for the \" + job + \" role. I am reviewing your profile against the brief and will come back to you \" + j.sla_text + \". To help me, could you confirm your notice period and salary expectations? Best, [Recruiter name]\";\n  } else if (tpl === \"C\") {\n    draft = \"Hi \" + first + \", thanks for getting in touch. I do not have a role that is a close match right now, but \" + skillPhrase + \" is relevant to roles we work on regularly. Would you be happy for us to keep your details on file for future opportunities? Best, [Recruiter name]\";\n  }\n  draft = draft ? limitWords(scrub(draft), MAX) : \"\";\n\n  j.comms_suppressed = reasons.length > 0;\n  j.comms_suppression_reasons = reasons;\n  j.comms_draft = j.comms_suppressed ? \"\" : draft;\n  j.comms_draft_if_released = draft;\n  j.comms_draft_words = words(j.comms_draft || draft).length;\n  j.comms_approval_status = j.comms_suppressed ? \"SUPPRESSED - \" + reasons.join(\", \") : \"DRAFT - REQUIRES RECRUITER APPROVAL BEFORE SENDING\";\n\n  const a = j.analysis;\n  j.recruiter_brief = [\n    j.full_name + \" | \" + (j.current_title || \"title n/a\") + \" | \" + (j.years_experience === null ? \"?\" : j.years_experience) + \" yrs | \" + j.location,\n    \"Best match: \" + j.best_match.job_title + \" (\" + j.match_score + \"/100, Tier \" + j.tier + \" \" + j.tier_label + \")\",\n    a.strengths.join(\" \"),\n    a.gaps.length ? \"Gaps: \" + a.gaps.join(\" \") : \"Gaps: none against must-haves.\",\n    \"Ask: \" + a.screening_questions.join(\" | \"),\n    j.best_match.flags.length ? \"Flags: \" + j.best_match.flags.join(\", \") : \"Flags: none\"\n  ].join(\"\\n\");\n  return { json: j };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n18",
+      "name": "16. Build CRM Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2840,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst now = new Date().toISOString();\n\nreturn $input.all().map(function(item){\n  const j = JSON.parse(JSON.stringify(item.json));\n  if (j.halt) return { json: j };\n  const a = j.analysis;\n  const b = j.best_match;\n  const key = j.email_valid ? j.email : (\"REF:\" + j.candidate_ref);\n  const dedup = key + \"|\" + j.best_job_id;\n\n  const missing = [];\n  if (!j.email_valid) missing.push(\"email\");\n  if (!j.phone) missing.push(\"phone\");\n  if (j.years_experience === null) missing.push(\"years_experience\");\n  if (!j.current_title) missing.push(\"current_title\");\n\n  const contact = {\n    Candidate_External_Id__c: key, FirstName: j.first_name, LastName: j.last_name || \"UNKNOWN\", Email: j.email_valid ? j.email : null,\n    Phone: j.phone || null, MailingCity: j.location, Title: j.current_title, Years_Experience__c: j.years_experience,\n    Skills__c: (j.skills || []).join(\"; \"), Function__c: j.function, Seniority__c: j.seniority_label, LeadSource: j.source,\n    Processing_Basis__c: j.processing_basis, Data_Label__c: j.data_label\n  };\n  const contactBody = Object.assign({}, contact);\n  delete contactBody.Candidate_External_Id__c;\n  const matchBody = {\n    Contact__r: { Candidate_External_Id__c: key }, Job_Id__c: j.best_job_id, Job_Title__c: b.job_title, Match_Score__c: j.match_score,\n    Tier__c: j.tier, Recommendation__c: j.recommendation, Matched_Skills__c: (a.matched_skills || []).join(\"; \"),\n    Skill_Gaps__c: (j.unmet_must || []).join(\"; \"), Screening_Summary__c: a.fit_summary, Screening_Questions__c: a.screening_questions.join(\" | \"),\n    Recruiter_Name__c: j.recruiter, SLA_Target__c: j.sla_text, SLA_At_Risk__c: j.sla_at_risk, Comms_Suppressed__c: j.comms_suppressed,\n    Comms_Suppression_Reasons__c: j.comms_suppression_reasons.join(\"; \"), Status__c: j.status, Review_Reasons__c: (j.review_reasons || []).join(\"; \"),\n    Analysis_Source__c: j.analysis_source, Model_Confidence__c: a.confidence, Workflow_Version__c: CONFIG.workflow_version,\n    Screened_At__c: now, Data_Label__c: j.data_label\n  };\n  const airtable = {\n    \"Dedup Key\": dedup, \"Candidate Ref\": j.candidate_ref, \"Name\": j.full_name, \"Email\": j.email_valid ? j.email : \"\", \"Location\": j.location,\n    \"Title\": j.current_title, \"Years\": j.years_experience, \"Skills\": (j.skills || []).join(\", \"), \"Function\": j.function,\n    \"Best Job\": b.job_title, \"Match Score\": j.match_score, \"Tier\": j.tier, \"Recommendation\": j.recommendation, \"Recruiter\": j.recruiter,\n    \"SLA Target\": j.sla_text, \"SLA At Risk\": j.sla_at_risk, \"Status\": j.status, \"Review Reasons\": (j.review_reasons || []).join(\"; \"),\n    \"Skill Gaps\": (j.unmet_must || []).join(\"; \"), \"Screening Questions\": a.screening_questions.join(\" | \"),\n    \"Comms Status\": j.comms_approval_status, \"Comms Draft\": j.comms_draft, \"Screened At\": now, \"Workflow Version\": CONFIG.workflow_version, \"Data Label\": j.data_label\n  };\n  const clay = {\n    candidate_ref: j.candidate_ref, dedup_key: dedup, full_name: j.full_name, current_title: j.current_title, location: j.location,\n    function: j.function, missing_fields: missing, needs_enrichment: missing.length > 0,\n    suggested_enrichment: missing.length ? [\"verify current employer from public sources\", \"find public professional profile URL\", \"fill missing contact fields ONLY where a lawful basis exists\"] : [],\n    processing_basis: j.processing_basis, data_label: j.data_label\n  };\n\n  return { json: {\n    candidate_ref: j.candidate_ref, full_name: j.full_name, email: j.email, phone: j.phone, location: j.location, current_title: j.current_title,\n    years_experience: j.years_experience, skills: j.skills, skills_unrecognised: j.skills_unrecognised, function: j.function, seniority_label: j.seniority_label,\n    best_job_id: j.best_job_id, best_job_title: b.job_title, match_score: j.match_score, tier: j.tier, tier_label: j.tier_label, recommendation: j.recommendation,\n    matched_skills: a.matched_skills, unmet_must: j.unmet_must, gaps: a.gaps, flags: b.flags, screening_questions: a.screening_questions, fit_summary: a.fit_summary,\n    alternates: j.alternates, job_scores: j.job_scores.map(function(s){ return { job_id: s.job_id, job_title: s.job_title, score: s.score }; }),\n    score_breakdown: b.breakdown, recruiter: j.recruiter, routing_note: j.routing_note || \"\", sla_text: j.sla_text, sla_at_risk: j.sla_at_risk,\n    hours_since_application: j.hours_since_application, comms_suppressed: j.comms_suppressed, comms_suppression_reasons: j.comms_suppression_reasons,\n    comms_approval_status: j.comms_approval_status, comms_draft: j.comms_draft, comms_draft_words: j.comms_draft_words, recruiter_brief: j.recruiter_brief,\n    crm_action: j.crm_action, crm_match: j.crm_match, status: j.status, review_reasons: j.review_reasons, advisory_flags: j.advisory_flags,\n    analysis_source: j.analysis_source, confidence: a.confidence, redaction_count: j.redaction_count, redaction_categories: j.redaction_categories,\n    duplicates_merged: j.duplicates_merged, application_count: j.application_count, merged_refs: j.merged_refs, data_label: j.data_label,\n    salesforce_contact: contact, salesforce_contact_body: contactBody, salesforce_candidate_match: Object.assign({ External_Id__c: dedup }, matchBody), salesforce_upsert_body: matchBody,\n    airtable_record: airtable, clay_payload: clay,\n    audit: { created_at: now, screened_at: now, workflow_version: CONFIG.workflow_version, run_mode: j.run_mode, analysis_source: j.analysis_source,\n      model_confidence: a.confidence, source_refs: j.merged_refs, redaction_count: j.redaction_count, score_formula: j.score_formula,\n      policy: \"Recommendation only. No automated rejection. No message sent without recruiter approval.\" }\n  } };\n});\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n19",
+      "name": "17. Push Enabled?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3060,
+        160
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "n19-c1",
+              "leftValue": "={{ String($('2. Load CONFIG').first().json.config.crm_push_enabled) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "n20",
+      "name": "18. Salesforce Contact Upsert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        20
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('2. Load CONFIG').first().json.config.endpoints.salesforce_instance_url + '/services/data/' + $('2. Load CONFIG').first().json.config.endpoints.salesforce_api_version + '/sobjects/Contact/Candidate_External_Id__c/' + encodeURIComponent($json.salesforce_contact.Candidate_External_Id__c) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.salesforce_contact_body) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "notes": "SALESFORCE_CREDENTIAL_REQUIRED: Header Auth credential (Name=Authorization, Value=Bearer <Salesforce access token>) or swap to a Salesforce OAuth2 credential. Requires custom field Candidate_External_Id__c (External Id) on Contact. Replace SALESFORCE_INSTANCE_URL_REQUIRED in node 2.",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n21",
+      "name": "19. Salesforce Match Upsert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3500,
+        20
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('2. Load CONFIG').first().json.config.endpoints.salesforce_instance_url + '/services/data/' + $('2. Load CONFIG').first().json.config.endpoints.salesforce_api_version + '/sobjects/Candidate_Match__c/External_Id__c/' + encodeURIComponent($('16. Build CRM Records').item.json.salesforce_candidate_match.External_Id__c) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('16. Build CRM Records').item.json.salesforce_upsert_body) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "notes": "Requires custom object Candidate_Match__c with External_Id__c (External Id, unique) and a lookup Contact__c. Upsert makes re-runs idempotent (no duplicate matches).",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n22",
+      "name": "20. Airtable Upsert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        160
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('2. Load CONFIG').first().json.config.endpoints.airtable_base_id + '/' + encodeURIComponent($('2. Load CONFIG').first().json.config.endpoints.airtable_table) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ performUpsert: { fieldsToMergeOn: ['Dedup Key'] }, typecast: true, records: [ { fields: $json.airtable_record } ] }) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "notes": "AIRTABLE_CREDENTIAL_REQUIRED: Header Auth credential (Name=Authorization, Value=Bearer <Airtable personal access token>). Create a table whose fields match the airtable_record keys; 'Dedup Key' is the merge field.",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n23",
+      "name": "21. Clay Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('2. Load CONFIG').first().json.config.endpoints.clay_webhook }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.clay_payload) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "CLAY_WEBHOOK_URL_REQUIRED: paste your Clay table webhook URL into node 2. If your Clay webhook requires an auth token, add a Header Auth credential here. Clay then runs waterfall/people enrichment only on rows with needs_enrichment = true.",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n24",
+      "name": "22. Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3060,
+        460
+      ],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "opportunities",
+        "options": {}
+      }
+    },
+    {
+      "id": "n25",
+      "name": "23. Recruitment Ops Dashboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        460
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst CONFIG = $('2. Load CONFIG').first().json.config;\nconst JOBS = CONFIG.mode === \"LIVE\" ? CONFIG.live_jobs : CONFIG.demo_jobs;\nconst rows = (($input.first().json.opportunities) || []).filter(function(r){ return !r.halt; });\n\nfunction esc(s){ return String(s == null ? \"\" : s).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\").replace(/\"/g, \"&quot;\"); }\nfunction tally(list){ const o = {}; list.forEach(function(k){ o[k] = (o[k] || 0) + 1; }); return o; }\nfunction top(o, n){ return Object.keys(o).map(function(k){ return [k, o[k]]; }).sort(function(a, b){ return b[1] - a[1]; }).slice(0, n); }\n\nconst tierCount = tally(rows.map(function(r){ return r.tier; }));\nconst recCount = tally(rows.map(function(r){ return r.recommendation; }));\nconst funcCount = tally(rows.map(function(r){ return r.function; }));\nconst reasonTally = tally([].concat.apply([], rows.map(function(r){ return (r.review_reasons || []).map(function(x){ return x.split(\":\")[0]; }); })));\nconst unrec = tally([].concat.apply([], rows.map(function(r){ return r.skills_unrecognised || []; })).map(function(s){ return s.toLowerCase(); }));\nconst gapCount = tally([].concat.apply([], rows.filter(function(r){ return [\"A\",\"B\",\"C\"].indexOf(r.tier) !== -1; }).map(function(r){ return r.unmet_must || []; })));\nconst applications = rows.reduce(function(a, r){ return a + (r.application_count || 1); }, 0);\nconst dupes = rows.reduce(function(a, r){ return a + (r.duplicates_merged || 0); }, 0);\nconst redactions = rows.reduce(function(a, r){ return a + (r.redaction_count || 0); }, 0);\nconst avg = rows.length ? Math.round(rows.reduce(function(a, r){ return a + r.match_score; }, 0) / rows.length * 10) / 10 : 0;\nconst mins = CONFIG.assumptions.manual_screen_minutes_per_candidate;\n\nconst pipeline = JOBS.map(function(job){\n  const strong = rows.filter(function(r){ return (r.comms_suppression_reasons || []).indexOf(\"DO_NOT_CONTACT\") === -1 && (r.job_scores || []).some(function(s){ return s.job_id === job.job_id && s.score >= 65; }); });\n  const primary = rows.filter(function(r){ return r.best_job_id === job.job_id; });\n  const health = strong.length >= job.target_shortlist ? \"HEALTHY\" : (strong.length >= 1 ? \"THIN\" : \"EMPTY\");\n  return { job_id: job.job_id, title: job.title, client: job.client_label, target_shortlist: job.target_shortlist, strong_candidates: strong.length,\n    primary_A: primary.filter(function(r){ return r.tier === \"A\"; }).length, primary_B: primary.filter(function(r){ return r.tier === \"B\"; }).length, health: health };\n});\n\nconst sourcing = pipeline.filter(function(p){ return p.health !== \"HEALTHY\"; }).map(function(p){\n  const job = JOBS.filter(function(x){ return x.job_id === p.job_id; })[0];\n  return { job_id: p.job_id, title: p.title, shortlist_gap: p.target_shortlist - p.strong_candidates,\n    clay_search_brief: { job_titles: [job.title], must_have_skills: job.must_have.map(function(g){ return Array.isArray(g) ? g.join(\" OR \") : g; }),\n      seniority_level: job.target_seniority, location: job.work_mode === \"remote\" ? \"UK remote\" : job.region, salary_band_gbp: [job.salary_min, job.salary_max] },\n    clay_steps: [\"Build a Clay people-search table from this brief using public professional data sources\", \"Enrich and dedupe against the CRM export before adding anyone\", \"Push to the Clay webhook table for recruiter review; no outreach without recruiter approval and a lawful basis\"] };\n});\n\nconst load = {};\nrows.forEach(function(r){\n  if (!load[r.recruiter]) load[r.recruiter] = { A: 0, B: 0, C: 0, D: 0, total: 0 };\n  load[r.recruiter][r.tier]++; load[r.recruiter].total++;\n});\nconst slaRisk = rows.filter(function(r){ return r.sla_at_risk; }).map(function(r){\n  return { candidate_ref: r.candidate_ref, name: r.full_name, job: r.best_job_title, tier: r.tier, hours_since_application: r.hours_since_application, recruiter: r.recruiter };\n});\n\nconst order = { A: 0, B: 1, C: 2, D: 3 };\nconst worklist = rows.slice().sort(function(a, b){ return order[a.tier] - order[b.tier] || b.match_score - a.match_score; }).map(function(r){\n  return { Candidate: r.full_name, Ref: r.candidate_ref, Best_Job: r.best_job_title, Match_Score: r.match_score, Tier: r.tier, Recommendation: r.recommendation,\n    Matched_Skills: (r.matched_skills || []).join(\", \"), Gaps_To_Verify: (r.unmet_must || []).join(\", \"), Recruiter: r.recruiter, SLA_Target: r.sla_text,\n    SLA_At_Risk: r.sla_at_risk, Comms_Status: r.comms_approval_status, CRM_Action: r.crm_action, Status: r.status, Review_Reasons: (r.review_reasons || []).join(\"; \"),\n    Redactions: r.redaction_count, Comms_Draft: r.comms_draft };\n});\n\nconst dashboard = {\n  report: \"TalentFlow Engine - Recruitment Operations Dashboard\", agency: CONFIG.agency, run_mode: CONFIG.mode, workflow_version: CONFIG.workflow_version,\n  generated_at: new Date().toISOString(), data_label: rows.length ? rows[0].data_label : \"NO DATA\",\n  applications_received: applications, unique_candidates: rows.length, duplicates_merged: dupes,\n  existing_crm_matches_simulated: rows.filter(function(r){ return r.crm_action === \"UPDATE_EXISTING\"; }).length,\n  requires_review: rows.filter(function(r){ return r.status === \"REQUIRES_REVIEW\"; }).length,\n  tier_counts: tierCount, recommendation_counts: recCount, function_mix: funcCount, average_match_score: avg,\n  sla_at_risk: slaRisk.length, comms_drafts_ready: rows.filter(function(r){ return !r.comms_suppressed; }).length,\n  comms_suppressed: rows.filter(function(r){ return r.comms_suppressed; }).length,\n  protected_terms_redacted_before_scoring: redactions,\n  estimated_manual_screening_hours_avoided: Math.round(applications * mins / 60 * 10) / 10,\n  estimated_hours_avoided_per_100_applications: Math.round(100 * mins / 60 * 10) / 10,\n  estimate_note: CONFIG.assumptions.label + \" (\" + mins + \" min per application assumed)\",\n  pipeline_health_by_job: pipeline, sourcing_briefs_for_clay: sourcing, recruiter_workload: load, sla_at_risk_list: slaRisk,\n  top_unmet_must_have_skills: top(gapCount, 5), unrecognised_skills_for_taxonomy_review: top(unrec, 8), data_quality_issues: reasonTally,\n  measurement_note: \"Measures screening throughput, routing and data quality. It does not measure placements, fees or revenue, and match scores are not predictions of hiring outcomes.\",\n  policy_note: CONFIG.data_use_policy.principles\n};\n\nfunction badge(t){ return '<span class=\"b b' + esc(t) + '\">' + esc(t) + \"</span>\"; }\nfunction kpi(v, l){ return '<div class=\"k\"><b>' + esc(v) + \"</b><span>\" + esc(l) + \"</span></div>\"; }\nconst css = \"body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f5f6f8;color:#1b1f24}.wrap{max-width:1200px;margin:0 auto;padding:24px}h1{font-size:22px;margin:0}.sub{color:#5a6472;font-size:13px}.banner{background:#fff7e0;border:1px solid #f0d98a;padding:8px 12px;border-radius:8px;font-size:12px;margin:12px 0}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}.k{background:#fff;border:1px solid #e3e6eb;border-radius:10px;padding:10px 12px}.k b{display:block;font-size:22px}.k span{font-size:11px;color:#5a6472;text-transform:uppercase;letter-spacing:.04em}table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e6eb;font-size:12.5px}th,td{word-break:break-word;padding:7px 9px;border-bottom:1px solid #eef0f3;text-align:left;vertical-align:top}th{background:#fafbfc;font-size:11px;text-transform:uppercase;color:#5a6472}.b{display:inline-block;padding:1px 8px;border-radius:10px;font-weight:600;font-size:11px;color:#fff}.bA{background:#1a7f4b}.bB{background:#2b6cb0}.bC{background:#b7791f}.bD{background:#718096}.warn{color:#b42318;font-weight:600}.ok{color:#1a7f4b;font-weight:600}h2{font-size:15px;margin:22px 0 8px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.grid2{grid-template-columns:1fr}}.tw{overflow-x:auto}.small{font-size:11.5px;color:#5a6472}\";\n\nconst h = [];\nh.push('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>TalentFlow Engine</title><style>' + css + \"</style></head><body><div class=\\\"wrap\\\">\");\nh.push(\"<h1>TalentFlow Engine - Recruitment Operations Dashboard</h1>\");\nh.push('<div class=\"sub\">' + esc(CONFIG.agency) + \" | mode \" + esc(CONFIG.mode) + \" | v\" + esc(CONFIG.workflow_version) + \" | \" + esc(dashboard.generated_at) + \"</div>\");\nh.push('<div class=\"banner\"><b>' + esc(dashboard.data_label) + \".</b> All candidates, clients, recruiters and CRM records shown are synthetic or simulated. Recommendations only: a recruiter makes every decision and no message is sent automatically.</div>\");\nh.push('<div class=\"kpis\">' + kpi(applications, \"Applications received\") + kpi(rows.length, \"Unique candidates\") + kpi(dupes, \"Duplicates merged\") + kpi(tierCount.A || 0, \"Tier A fast-track\") + kpi(tierCount.B || 0, \"Tier B review\") + kpi(slaRisk.length, \"SLA at risk\") + kpi(dashboard.requires_review, \"Requires review\") + kpi(redactions, \"Protected terms redacted\") + kpi(dashboard.estimated_manual_screening_hours_avoided + \" h\", \"Est. hrs avoided (this run)*\") + kpi(avg, \"Avg match score\") + \"</div>\");\nh.push('<div class=\"small\">*' + esc(dashboard.estimate_note) + \" At 100 applications that is about \" + dashboard.estimated_hours_avoided_per_100_applications + \" recruiter hours.</div>\");\n\nh.push(\"<h2>Recruiter worklist (highest priority first)</h2><div class=\\\"tw\\\"><table><tr><th>Cand.</th><th>Best match</th><th>Score</th><th>Tier</th><th>Matched skills</th><th>Verify on call</th><th>Recruiter</th><th>SLA</th><th>Comms</th><th>CRM</th><th>Status</th></tr>\");\nworklist.forEach(function(w){\n  h.push(\"<tr><td><b>\" + esc(w.Candidate) + '</b><br><span class=\"small\">' + esc(w.Ref) + \"</span></td><td>\" + esc(w.Best_Job) + \"</td><td><b>\" + esc(w.Match_Score) + \"</b></td><td>\" + badge(w.Tier) + \"</td><td>\" + esc(w.Matched_Skills) + \"</td><td>\" + esc(w.Gaps_To_Verify || \"-\") + \"</td><td>\" + esc(w.Recruiter) + \"</td><td>\" + esc(w.SLA_Target) + (w.SLA_At_Risk ? '<br><span class=\"warn\">AT RISK</span>' : \"\") + \"</td><td>\" + esc(String(w.Comms_Status).indexOf(\"SUPPRESSED\") === 0 ? w.Comms_Status : \"Draft ready (approval required)\") + \"</td><td>\" + esc(w.CRM_Action) + \"</td><td>\" + (w.Status === \"OK\" ? '<span class=\"ok\">OK</span>' : '<span class=\"warn\">REVIEW</span><br><span class=\"small\">' + esc(w.Review_Reasons) + \"</span>\") + \"</td></tr>\");\n});\nh.push(\"</table></div>\");\n\nh.push('<div class=\"grid2\"><div><h2>Pipeline health by open job</h2><table><tr><th>Job</th><th>Strong (65+)</th><th>Target</th><th>Health</th></tr>');\npipeline.forEach(function(p){ h.push(\"<tr><td>\" + esc(p.job_id + \" \" + p.title) + \"</td><td>\" + p.strong_candidates + \"</td><td>\" + p.target_shortlist + \"</td><td>\" + (p.health === \"HEALTHY\" ? '<span class=\"ok\">HEALTHY</span>' : '<span class=\"warn\">' + p.health + \"</span>\") + \"</td></tr>\"); });\nh.push(\"</table><div class=\\\"small\\\">Jobs below target get a Clay sourcing brief (\" + sourcing.length + \" generated).</div></div>\");\nh.push(\"<div><h2>Recruiter workload</h2><table><tr><th>Recruiter</th><th>A</th><th>B</th><th>C</th><th>Total</th></tr>\");\nObject.keys(load).forEach(function(k){ h.push(\"<tr><td>\" + esc(k) + \"</td><td>\" + load[k].A + \"</td><td>\" + load[k].B + \"</td><td>\" + load[k].C + \"</td><td>\" + load[k].total + \"</td></tr>\"); });\nh.push(\"</table></div></div>\");\n\nh.push('<div class=\"grid2\"><div><h2>SLA at risk</h2><table><tr><th>Candidate</th><th>Job</th><th>Tier</th><th>Hours waiting</th></tr>');\nif (!slaRisk.length) h.push('<tr><td colspan=\"4\">None</td></tr>');\nslaRisk.forEach(function(s){ h.push(\"<tr><td>\" + esc(s.name) + \"</td><td>\" + esc(s.job) + \"</td><td>\" + badge(s.tier) + '</td><td class=\"warn\">' + esc(s.hours_since_application) + \"</td></tr>\"); });\nh.push(\"</table></div><div><h2>Data quality and skills insight</h2><table><tr><th>Issue</th><th>Count</th></tr>\");\nObject.keys(reasonTally).forEach(function(k){ h.push(\"<tr><td>\" + esc(k) + \"</td><td>\" + reasonTally[k] + \"</td></tr>\"); });\nh.push(\"</table><div class=\\\"small\\\">Top unmet must-haves: \" + esc(top(gapCount, 5).map(function(x){ return x[0] + \" (\" + x[1] + \")\"; }).join(\", \") || \"none\") + \"<br>Unrecognised skills to add to taxonomy: \" + esc(top(unrec, 8).map(function(x){ return x[0]; }).join(\", \") || \"none\") + \"</div></div></div>\");\nh.push('<div class=\"small\" style=\"margin-top:22px\">' + esc(dashboard.measurement_note) + \"</div></div></body></html>\");\n\nreturn [{ json: { dashboard: dashboard, worklist: worklist, salesforce_flow_blueprints: CONFIG.salesforce_flow_blueprints,\n  crm_payloads: rows.map(function(r){ return { contact: r.salesforce_contact, candidate_match: r.salesforce_candidate_match, airtable: r.airtable_record }; }),\n  html_report: h.join(\"\") } }];\n"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "n26",
+      "name": "24. Respond (HTML dashboard)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3500,
+        460
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html_report }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "Returns the HTML dashboard when the run was started from the webhook. On a manual run it simply passes the data through."
+    },
+    {
+      "id": "s1",
+      "name": "Note s1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -230
+      ],
+      "parameters": {
+        "content": "## TalentFlow Engine - inbound candidate triage\nSynthetic demo data: no real people. Recommendations only. A recruiter decides everything; no message is sent automatically.\n\nEverything configurable lives in **2. Load CONFIG** (jobs, skills taxonomy, scoring weights, tiers, recruiters, LLM prompt, endpoints).",
+        "height": 190,
+        "width": 860,
+        "color": 4
+      }
+    },
+    {
+      "id": "s2",
+      "name": "Note s2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -230
+      ],
+      "parameters": {
+        "content": "### Data quality\nNormalise names, emails, phones (E.164), titles. Dedupe on email / phone / name+location. Simulated CRM lookup flags existing records, do-not-contact and recently-contacted candidates.",
+        "height": 190,
+        "width": 640,
+        "color": 6
+      }
+    },
+    {
+      "id": "s3",
+      "name": "Note s3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        860,
+        -230
+      ],
+      "parameters": {
+        "content": "### Fair screening\nProtected-characteristic terms and contact details are redacted before scoring and before any LLM call. Transparent 0-100 score with a must-have gate.",
+        "height": 190,
+        "width": 640,
+        "color": 5
+      }
+    },
+    {
+      "id": "s4",
+      "name": "Note s4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        -230
+      ],
+      "parameters": {
+        "content": "### LLM with guardrails\nDeterministic baseline always runs. The LLM can only make the recommendation MORE cautious, cannot invent skills, and is filtered for protected terms. Failures fall back to baseline and flag REQUIRES_REVIEW.",
+        "height": 190,
+        "width": 720,
+        "color": 3
+      }
+    },
+    {
+      "id": "s5",
+      "name": "Note s5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2620,
+        -230
+      ],
+      "parameters": {
+        "content": "### Outputs / integration points\nSalesforce upsert (Contact + Candidate_Match__c), Airtable upsert, Clay webhook, HTML dashboard. Push is OFF by default. MCP tools: see CONFIG.endpoints.mcp_integration_points.",
+        "height": 190,
+        "width": 900,
+        "color": 2
+      }
+    }
+  ],
+  "connections": {
+    "1. Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "2. Load CONFIG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1b. Dashboard Webhook (GET)": {
+      "main": [
+        [
+          {
+            "node": "2. Load CONFIG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Load CONFIG": {
+      "main": [
+        [
+          {
+            "node": "3. Load Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Load Candidates": {
+      "main": [
+        [
+          {
+            "node": "4. Normalize + Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Normalize + Validate": {
+      "main": [
+        [
+          {
+            "node": "5. Deduplicate + CRM Match",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Deduplicate + CRM Match": {
+      "main": [
+        [
+          {
+            "node": "6. Anonymise Protected Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Anonymise Protected Data": {
+      "main": [
+        [
+          {
+            "node": "7. Classify Skills + Seniority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7. Classify Skills + Seniority": {
+      "main": [
+        [
+          {
+            "node": "8. Match Scoring vs Open Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8. Match Scoring vs Open Jobs": {
+      "main": [
+        [
+          {
+            "node": "9. Deterministic Screening",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9. Deterministic Screening": {
+      "main": [
+        [
+          {
+            "node": "10. LLM Enabled?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10. LLM Enabled?": {
+      "main": [
+        [
+          {
+            "node": "11a. LLM Screening (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "11b. Skip LLM (baseline only)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11a. LLM Screening (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "12. Merge Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11b. Skip LLM (baseline only)": {
+      "main": [
+        [
+          {
+            "node": "12. Merge Analysis",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "12. Merge Analysis": {
+      "main": [
+        [
+          {
+            "node": "13. Parse + Guardrail AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "13. Parse + Guardrail AI Output": {
+      "main": [
+        [
+          {
+            "node": "14. Triage + Recruiter Routing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "14. Triage + Recruiter Routing": {
+      "main": [
+        [
+          {
+            "node": "15. Draft Comms (approval required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15. Draft Comms (approval required)": {
+      "main": [
+        [
+          {
+            "node": "16. Build CRM Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16. Build CRM Records": {
+      "main": [
+        [
+          {
+            "node": "17. Push Enabled?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "22. Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "17. Push Enabled?": {
+      "main": [
+        [
+          {
+            "node": "18. Salesforce Contact Upsert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "20. Airtable Upsert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "21. Clay Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "18. Salesforce Contact Upsert": {
+      "main": [
+        [
+          {
+            "node": "19. Salesforce Match Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "22. Aggregate": {
+      "main": [
+        [
+          {
+            "node": "23. Recruitment Ops Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "23. Recruitment Ops Dashboard": {
+      "main": [
+        [
+          {
+            "node": "24. Respond (HTML dashboard)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
